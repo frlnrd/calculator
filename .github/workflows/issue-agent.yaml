@@ -27,7 +27,7 @@ jobs:
 
       - name: Run Agent
         env:
-          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          GROK_API_KEY: ${{ secrets.GROK_API_KEY }}
           GITHUB_TOKEN: ${{ github.token }}
 
           ISSUE_TITLE: ${{ github.event.issue.title }}
