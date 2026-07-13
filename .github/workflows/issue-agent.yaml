@@ -15,9 +15,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - run: |
-          echo "Repository=${{ github.repository }}"
-          echo "Ref=${{ github.ref }}"
+      - uses: actions/checkout@v43
+
+      - name: Debug
+          run: |
+            pwd
+            ls -la
 
       - uses: actions/setup-python@v5
         with:
