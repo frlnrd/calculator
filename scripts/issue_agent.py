@@ -1,7 +1,7 @@
 import os
 import requests
 
-OPENROUTER_API_KEY = os.environ["OPENROUTER_API_KEY"]
+GROK_API_KEY = os.environ["GROK_API_KEY"]
 GITHUB_TOKEN = os.environ["GITHUB_TOKEN"]
 
 ISSUE_TITLE = os.environ.get("ISSUE_TITLE", "")
