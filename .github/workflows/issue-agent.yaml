@@ -26,15 +26,11 @@ jobs:
           pwd
           ls -la
 
-      - uses: actions/setup-python@v5
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-
-      - name: Install dependencies
-        run: |
-          echo "Pas de checkout, donc pas de requirements.txt disponible"
 
       - name: Debug event
         run: |
           echo "Event=${{ github.event_name }}"
-`
