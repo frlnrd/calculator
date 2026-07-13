@@ -34,9 +34,9 @@ Fournis :
 """
 
 response = requests.post(
-    "https://openrouter.ai/api/v1/chat/completions",
+    "https://api.groq.com/openai/v1/chat/completions",
     headers={
-        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+        "Authorization": f"Bearer {GROK_API_KEY}",
         "HTTP-Referer": "https://github.com/frlnrd/calculator",
         "X-Title": "Calculator Agent",
         "Content-Type": "application/json",
