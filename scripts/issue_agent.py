@@ -4,10 +4,10 @@ import requests
 OPENROUTER_API_KEY = os.environ["OPENROUTER_API_KEY"]
 GITHUB_TOKEN = os.environ["GITHUB_TOKEN"]
 
-ISSUE_TITLE = os.environ["ISSUE_TITLE"]
-ISSUE_BODY = os.environ["ISSUE_BODY"]
-ISSUE_NUMBER = os.environ["ISSUE_NUMBER"]
-REPO_NAME = os.environ["REPO_NAME"]
+ISSUE_TITLE = os.environ.get("ISSUE_TITLE", "")
+ISSUE_BODY = os.environ.get("ISSUE_BODY", "")
+ISSUE_NUMBER = os.environ.get("ISSUE_NUMBER", "")
+REPO_NAME = os.environ.get("REPO_NAME", "")
 
 prompt = f"""
 Tu es un développeur senior.
@@ -23,33 +23,53 @@ Description :
 Fournis :
 
 ## Résumé
+
 ## Cause probable
+
 ## Solution proposée
+
 ## Niveau de difficulté
+
+## Plan d'action
 """
 
 response = requests.post(
     "https://openrouter.ai/api/v1/chat/completions",
     headers={
         "Authorization": f"Bearer {OPENROUTER_API_KEY}",
-        "Content-Type": "application/json"
+        "HTTP-Referer": "https://github.com/frlnrd/calculator",
+        "X-Title": "Calculator Agent",
+        "Content-Type": "application/json",
     },
     json={
-        "model": "mistralai/mistral-small-3.2-24b-instruct:free",
+        "model": "openai/gpt-4o-mini",
         "messages": [
             {
                 "role": "user",
                 "content": prompt
             }
         ]
-    }
+    },
+    timeout=60
 )
+
+print("=== OPENROUTER STATUS ===")
+print(response.status_code)
+
+print("=== OPENROUTER RESPONSE ===")
+print(response.text)
 
 response.raise_for_status()
 
 analysis = response.json()["choices"][0]["message"]["content"]
 
-comment_url = f"https://api.github.com/repos/{REPO_NAME}/issues/{ISSUE_NUMBER}/comments"
+print("=== ANALYSIS ===")
+print(analysis)
+
+comment_url = (
+    f"https://api.github.com/repos/"
+    f"{REPO_NAME}/issues/{ISSUE_NUMBER}/comments"
+)
 
 github_response = requests.post(
     comment_url,
@@ -62,6 +82,12 @@ github_response = requests.post(
     }
 )
 
+print("=== GITHUB STATUS ===")
+print(github_response.status_code)
+
+print("=== GITHUB RESPONSE ===")
+print(github_response.text)
+
 github_response.raise_for_status()
 
-print("Commentaire publié avec succès.")
+print("✅ Commentaire publié avec succès.")
