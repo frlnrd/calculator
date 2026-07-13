@@ -16,8 +16,8 @@ jobs:
 
     steps:
       - run: |
-        echo "Repository=${{ github.repository }}"
-        echo "Ref=${{ github.ref }}"
+          echo "Repository=${{ github.repository }}"
+          echo "Ref=${{ github.ref }}"
 
       - uses: actions/setup-python@v5
         with:
