@@ -18,42 +18,31 @@ if not ISSUE_NUMBER:
 prompt = f"""
 Tu es un ingénieur logiciel senior.
 
-Tu DOIS commencer par vérifier si le bug est reproductible
-à partir des informations du ticket.
+Analyse cette issue GitHub.
 
-Si les étapes de reproduction sont absentes ou insuffisantes :
+Avant de proposer un correctif :
 
-- ne propose pas de correctif
-- explique les informations manquantes
-- demande précisément ce qu'il faut ajouter
+- détermine si les informations fournies permettent de reproduire le problème
+- si ce n'est pas le cas, indique les informations manquantes
+- ne prétends jamais avoir exécuté l'application ou reproduit le bug
 
-Si le bug semble reproductible :
+Titre :
+{ISSUE_TITLE}
 
-Fournis :
+Description :
+{ISSUE_BODY}
+
+Réponds avec :
 
 ## Reproductibilité
 
-Indique :
-- Reproductible
-- Partiellement reproductible
-- Non reproductible
-
-Explique pourquoi.
-
-## Résumé
+## Analyse
 
 ## Cause probable
 
-## Solution proposée
+## Correctif proposé
 
-## Fichiers probablement impactés
-
-## Tests à ajouter
-
-## Niveau de difficulté
-
-Notation :
-1/5 à 5/5
+## Complexité
 
 ## Plan d'action
 """
