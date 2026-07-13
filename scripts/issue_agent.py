@@ -1,23 +1,18 @@
 import os
 import requests
-from mistralai import Mistral
 
-MISTRAL_API_KEY = os.environ["MISTRAL_API_KEY"]
+OPENROUTER_API_KEY = os.environ["OPENROUTER_API_KEY"]
+GITHUB_TOKEN = os.environ["GITHUB_TOKEN"]
 
 ISSUE_TITLE = os.environ["ISSUE_TITLE"]
 ISSUE_BODY = os.environ["ISSUE_BODY"]
-
 ISSUE_NUMBER = os.environ["ISSUE_NUMBER"]
 REPO_NAME = os.environ["REPO_NAME"]
-
-GITHUB_TOKEN = os.environ["GITHUB_TOKEN"]
-
-client = Mistral(api_key=MISTRAL_API_KEY)
 
 prompt = f"""
 Tu es un développeur senior.
 
-Analyse le ticket suivant.
+Analyse le ticket GitHub suivant.
 
 Titre :
 {ISSUE_TITLE}
@@ -25,42 +20,48 @@ Titre :
 Description :
 {ISSUE_BODY}
 
-Donne :
+Fournis :
 
-- Résumé du problème
-- Cause probable
-- Solution proposée
-- Difficulté (Faible/Moyenne/Forte)
+## Résumé
+## Cause probable
+## Solution proposée
+## Niveau de difficulté
 """
 
-response = client.chat.complete(
-    model="mistral-small-latest",
-    messages=[
-        {
-            "role": "user",
-            "content": prompt
-        }
-    ]
+response = requests.post(
+    "https://openrouter.ai/api/v1/chat/completions",
+    headers={
+        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+        "Content-Type": "application/json"
+    },
+    json={
+        "model": "mistralai/mistral-small-3.2-24b-instruct:free",
+        "messages": [
+            {
+                "role": "user",
+                "content": prompt
+            }
+        ]
+    }
 )
 
-analysis = response.choices[0].message.content
+response.raise_for_status()
+
+analysis = response.json()["choices"][0]["message"]["content"]
 
 comment_url = f"https://api.github.com/repos/{REPO_NAME}/issues/{ISSUE_NUMBER}/comments"
 
-headers = {
-    "Authorization": f"Bearer {GITHUB_TOKEN}",
-    "Accept": "application/vnd.github+json"
-}
-
-payload = {
-    "body": f"## 🤖 Analyse automatique\n\n{analysis}"
-}
-
-response = requests.post(
+github_response = requests.post(
     comment_url,
-    headers=headers,
-    json=payload
+    headers={
+        "Authorization": f"Bearer {GITHUB_TOKEN}",
+        "Accept": "application/vnd.github+json"
+    },
+    json={
+        "body": f"## 🤖 Analyse automatique\n\n{analysis}"
+    }
 )
 
-print(response.status_code)
-print("Commentaire publié.")
+github_response.raise_for_status()
+
+print("Commentaire publié avec succès.")
