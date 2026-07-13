@@ -42,7 +42,7 @@ response = requests.post(
         "Content-Type": "application/json",
     },
     json={
-        "model": "openai/gpt-4o-mini",
+        "model": "openai/gpt-oss-120b",
         "messages": [
             {
                 "role": "user",
