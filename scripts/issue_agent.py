@@ -453,26 +453,90 @@ L'approbation n'est possible que depuis :
 
         return
 
+    branch_name = create_branch()
+
     set_state(
         "agent:implementing"
     )
 
     publish_comment(
-        """✅ Validation reçue.
+        f"""✅ Validation reçue.
+
+Branche créée :
+
+`{branch_name}`
 
 État actuel :
 
 `agent:implementing`
 
-La dernière proposition de solution est désormais considérée comme la source de vérité pour l'implémentation.
-
-La prochaine étape sera :
-
-- création de branche
-- modification du code
-- création de Pull Request
+La dernière proposition de solution est désormais la source de vérité pour l'implémentation.
 """
     )
+
+
+def create_branch():
+
+    headers = get_headers()
+
+    repo_response = requests.get(
+        f"https://api.github.com/repos/{REPO_NAME}",
+        headers=headers,
+        timeout=30
+    )
+
+    repo_response.raise_for_status()
+
+    default_branch = repo_response.json()[
+        "default_branch"
+    ]
+
+    branch_response = requests.get(
+        f"https://api.github.com/repos/{REPO_NAME}/branches/{default_branch}",
+        headers=headers,
+        timeout=30
+    )
+
+    branch_response.raise_for_status()
+
+    sha = branch_response.json()[
+        "commit"
+    ][
+        "sha"
+    ]
+
+    branch_name = (
+        f"agent/issue-{ISSUE_NUMBER}"
+    )
+
+    create_response = requests.post(
+        f"https://api.github.com/repos/{REPO_NAME}/git/refs",
+        headers=headers,
+        json={
+            "ref": (
+                f"refs/heads/{branch_name}"
+            ),
+            "sha": sha
+        },
+        timeout=30
+    )
+
+    #
+    # 201 = créée
+    # 422 = existe déjà
+    #
+
+    if create_response.status_code not in [
+        201,
+        422
+    ]:
+        create_response.raise_for_status()
+
+    print(
+        f"=== BRANCH {branch_name} ==="
+    )
+
+    return branch_name
 
 
 def main():
