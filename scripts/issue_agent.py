@@ -4,6 +4,13 @@ import requests
 
 MODEL = "openai/gpt-oss-120b"
 
+STATES = [
+    "agent:waiting-approval",
+    "agent:implementing",
+    "agent:waiting-review",
+    "agent:completed"
+]
+
 EVENT_NAME = os.environ.get("EVENT_NAME", "")
 COMMENT_BODY = os.environ.get("COMMENT_BODY", "")
 
@@ -38,7 +45,7 @@ def call_llm(prompt):
             "Authorization": f"Bearer {GROK_API_KEY}",
             "HTTP-Referer": f"https://github.com/{REPO_NAME}",
             "X-Title": "Calculator Agent",
-            "Content-Type": "application/json",
+            "Content-Type": "application/json"
         },
         json={
             "model": MODEL,
@@ -67,8 +74,8 @@ def call_llm(prompt):
 
     return (
         data.get("choices", [{}])[0]
-            .get("message", {})
-            .get("content", "")
+        .get("message", {})
+        .get("content", "")
     )
 
 
@@ -95,9 +102,6 @@ def build_comments_context():
 
         author = comment["user"]["login"]
         body = comment["body"]
-
-        if "🤖 Analyse automatique" in body:
-            continue
 
         context += f"""
 
@@ -191,8 +195,30 @@ def add_label(label_name):
         }
     )
 
-    print(f"=== LABEL {label_name} ===")
+    print(f"=== ADD LABEL {label_name} ===")
     print(response.status_code)
+
+
+def remove_label(label_name):
+
+    response = requests.delete(
+        f"https://api.github.com/repos/"
+        f"{REPO_NAME}/issues/"
+        f"{ISSUE_NUMBER}/labels/"
+        f"{label_name}",
+        headers=get_headers()
+    )
+
+    print(f"=== REMOVE LABEL {label_name} ===")
+    print(response.status_code)
+
+
+def set_state(new_state):
+
+    for state in STATES:
+        remove_label(state)
+
+    add_label(new_state)
 
 
 def publish_comment(body):
@@ -236,9 +262,9 @@ Titre :
 Description :
 {ISSUE_BODY}
 
-Quels fichiers doivent être consultés pour traiter cette issue ?
+Quels fichiers semblent pertinents ?
 
-Réponds UNIQUEMENT avec un tableau JSON.
+Réponds UNIQUEMENT avec un JSON.
 
 Exemple :
 
@@ -270,9 +296,6 @@ def analyse_issue():
 
     comments_context = build_comments_context()
 
-    print("=== COMMENTS CONTEXT ===")
-    print(comments_context)
-
     analysis_prompt = f"""
 Tu es un ingénieur logiciel senior.
 
@@ -281,15 +304,16 @@ Tu participes à une discussion GitHub.
 Tu dois prendre en compte :
 
 - l'issue initiale
-- le code du dépôt
-- l'historique des commentaires
+- le code
+- tous les commentaires
+- toutes les analyses précédentes
 - les remarques humaines
-- les corrections apportées à tes propositions
 
-Si un humain critique une solution proposée,
-tu dois adapter ton raisonnement.
+Si une solution a été critiquée,
+tu dois adapter ta proposition.
 
-Ne répète jamais une solution déjà rejetée.
+La dernière proposition prévaut
+sur les précédentes.
 
 Tu ne dois jamais prétendre avoir exécuté
 l'application.
@@ -302,7 +326,7 @@ Titre :
 Description :
 {ISSUE_BODY}
 
-=== COMMENTAIRES ===
+=== HISTORIQUE ===
 
 {comments_context}
 
@@ -336,7 +360,7 @@ Notée de 1/5 à 5/5
     print("=== ANALYSIS ===")
     print(analysis)
 
-    add_label(
+    set_state(
         "agent:waiting-approval"
     )
 
@@ -366,7 +390,7 @@ Pour lancer l'implémentation :
 
 def approve_issue():
 
-    add_label(
+    set_state(
         "agent:implementing"
     )
 
@@ -376,6 +400,8 @@ def approve_issue():
 État actuel :
 
 `agent:implementing`
+
+La dernière proposition de solution est désormais considérée comme la source de vérité pour l'implémentation.
 
 La prochaine étape sera :
 
@@ -399,6 +425,7 @@ def main():
         "issues",
         "workflow_dispatch"
     ]:
+
         analyse_issue()
 
     else:
