@@ -1,6 +1,8 @@
 import os
 import json
+import subprocess
 import requests
+
 
 MODEL = "openai/gpt-oss-120b"
 
@@ -453,27 +455,117 @@ L'approbation n'est possible que depuis :
 
         return
 
-    branch_name = create_branch()
+    try:
 
-    set_state(
-        "agent:implementing"
-    )
+        #
+        # Analyse validée
+        #
 
-    publish_comment(
-        f"""✅ Validation reçue.
+        analysis = get_latest_agent_analysis()
 
-Branche créée :
+        if not analysis:
+
+            publish_comment(
+                "❌ Impossible de trouver une analyse à implémenter."
+            )
+
+            return
+
+        #
+        # Branche
+        #
+
+        branch_name = create_branch()
+
+        checkout_branch(
+            branch_name
+        )
+
+        set_state(
+            "agent:implementing"
+        )
+
+        #
+        # Code source
+        #
+
+        selected_files = select_files()
+
+        code_context = load_files(
+            selected_files
+        )
+
+        #
+        # Génération
+        #
+
+        changes = generate_implementation(
+            analysis,
+            code_context
+        )
+
+        #
+        # Ecriture des fichiers
+        #
+
+        apply_changes(
+            changes
+        )
+
+        #
+        # Commit
+        #
+
+        commit_changes()
+
+        #
+        # Push
+        #
+
+        push_branch(
+            branch_name
+        )
+
+        #
+        # Pull Request
+        #
+
+        pr_url = create_pull_request(
+            branch_name
+        )
+
+        set_state(
+            "agent:waiting-review"
+        )
+
+        publish_comment(
+            f"""✅ Implémentation terminée.
+
+Branche :
 
 `{branch_name}`
 
+Pull Request :
+
+{pr_url}
+
 État actuel :
 
-`agent:implementing`
-
-La dernière proposition de solution est désormais la source de vérité pour l'implémentation.
+`agent:waiting-review`
 """
-    )
+        )
 
+    except Exception as ex:
+
+        publish_comment(
+            f"""❌ Échec de l'implémentation.
+
+Erreur :
+
+```text
+{str(ex)}
+""")
+        raise
 
 def create_branch():
 
@@ -537,6 +629,160 @@ def create_branch():
     )
 
     return branch_name
+
+
+def get_latest_agent_analysis():
+
+    comments = get_issue_comments()
+
+    for comment in reversed(comments):
+
+        body = comment["body"]
+
+        if "## 🤖 Analyse automatique" in body:
+            return body
+
+    return None
+
+
+def checkout_branch(branch_name):
+
+    subprocess.run(
+        ["git", "checkout", "-B", branch_name],
+        check=True
+    )
+
+    print(f"=== CHECKOUT {branch_name} ===")
+
+
+def generate_implementation(
+    analysis,
+    code_context
+):
+
+    prompt = f"""
+Tu es un développeur senior.
+
+Implémente la dernière solution validée.
+
+Réponds UNIQUEMENT avec du JSON.
+
+Format :
+
+{{
+  "files": [
+    {{
+      "path": "style.css",
+      "content": "contenu complet"
+    }}
+  ]
+}}
+
+=== ANALYSE VALIDEE ===
+
+{analysis}
+
+=== CODE ===
+
+{code_context}
+"""
+
+    response = call_llm(prompt)
+
+    return json.loads(response)
+
+
+def apply_changes(changes):
+
+    files = changes.get("files", [])
+
+    for file in files:
+
+        path = file["path"]
+        content = file["content"]
+
+        with open(
+            path,
+            "w",
+            encoding="utf-8"
+        ) as f:
+
+            f.write(content)
+
+        print(f"=== WRITE {path} ===")
+
+
+def commit_changes():
+
+    import subprocess
+
+    subprocess.run(
+        [
+            "git",
+            "config",
+            "user.name",
+            "calculator-agent"
+        ],
+        check=True
+    )
+
+    subprocess.run(
+        [
+            "git",
+            "config",
+            "user.email",
+            "agent@github.local"
+        ],
+        check=True
+    )
+
+    subprocess.run(
+        ["git", "add", "."],
+        check=True
+    )
+
+    subprocess.run(
+        [
+            "git",
+            "commit",
+            "-m",
+            f"Agent implementation for issue #{ISSUE_NUMBER}"
+        ],
+        check=True
+    )
+
+
+def push_branch(branch_name):
+
+    import subprocess
+
+    subprocess.run(
+        [
+            "git",
+            "push",
+            "origin",
+            branch_name
+        ],
+        check=True
+    )
+
+
+def create_pull_request(branch_name):
+
+    response = requests.post(
+        f"https://api.github.com/repos/{REPO_NAME}/pulls",
+        headers=get_headers(),
+        json={
+            "title": f"Fix issue #{ISSUE_NUMBER}",
+            "head": branch_name,
+            "base": "main",
+            "body": f"Fixes #{ISSUE_NUMBER}"
+        }
+    )
+
+    response.raise_for_status()
+
+    return response.json()["html_url"]
 
 
 def main():
