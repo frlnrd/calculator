@@ -37,6 +37,34 @@ def get_headers():
     }
 
 
+def get_current_labels():
+
+    response = requests.get(
+        f"https://api.github.com/repos/{REPO_NAME}/issues/{ISSUE_NUMBER}",
+        headers=get_headers(),
+        timeout=30
+    )
+
+    response.raise_for_status()
+
+    return [
+        label["name"]
+        for label in response.json()["labels"]
+    ]
+
+
+def get_current_state():
+
+    labels = get_current_labels()
+
+    for state in STATES:
+
+        if state in labels:
+            return state
+
+    return None
+
+
 def call_llm(prompt):
 
     response = requests.post(
@@ -215,11 +243,27 @@ def remove_label(label_name):
 
 def set_state(new_state):
 
+    current_labels = get_current_labels()
+
+    if new_state in current_labels:
+
+        print(
+            f"État déjà positionné : {new_state}"
+        )
+
+        return
+
     for state in STATES:
-        remove_label(state)
+
+        if state in current_labels:
+
+            remove_label(state)
 
     add_label(new_state)
 
+    print(
+        f"Changement d'état : {new_state}"
+    )
 
 def publish_comment(body):
 
@@ -389,6 +433,25 @@ Pour lancer l'implémentation :
 
 
 def approve_issue():
+
+    current_state = get_current_state()
+
+    if current_state != "agent:waiting-approval":
+
+        publish_comment(
+            f"""⚠️ Commande `/approve` ignorée.
+
+État actuel :
+
+`{current_state}`
+
+L'approbation n'est possible que depuis :
+
+`agent:waiting-approval`
+"""
+        )
+
+        return
 
     set_state(
         "agent:implementing"
