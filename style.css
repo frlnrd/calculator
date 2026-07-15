@@ -80,6 +80,18 @@ body {
     background: #5568d3;
 }
 
+/* -------------------------------------------------
+   Bouton DEL – couleur rouge
+   ------------------------------------------------- */
+.del-btn {
+    background: #e53e3e; /* rouge moyen */
+    /* color hérité de .function-btn (blanc) */
+}
+
+.del-btn:hover {
+    background: #c53030; /* rouge plus foncé */
+}
+
 .equals-btn {
     background: #48bb78;
     color: white;
