@@ -31,11 +31,12 @@ def get_headers():
 
 
 def call_llm(prompt):
+
     response = requests.post(
         "https://api.groq.com/openai/v1/chat/completions",
         headers={
             "Authorization": f"Bearer {GROK_API_KEY}",
-            "HTTP-Referer": "https://github.com/frlnrd/calculator",
+            "HTTP-Referer": f"https://github.com/{REPO_NAME}",
             "X-Title": "Calculator Agent",
             "Content-Type": "application/json",
         },
@@ -71,7 +72,45 @@ def call_llm(prompt):
     )
 
 
+def get_issue_comments():
+
+    response = requests.get(
+        f"https://api.github.com/repos/{REPO_NAME}/issues/{ISSUE_NUMBER}/comments",
+        headers=get_headers(),
+        timeout=30
+    )
+
+    response.raise_for_status()
+
+    return response.json()
+
+
+def build_comments_context():
+
+    comments = get_issue_comments()
+
+    context = ""
+
+    for comment in comments:
+
+        author = comment["user"]["login"]
+        body = comment["body"]
+
+        if "🤖 Analyse automatique" in body:
+            continue
+
+        context += f"""
+
+=== COMMENTAIRE DE {author} ===
+
+{body}
+"""
+
+    return context
+
+
 def build_repository_tree():
+
     excluded_dirs = {
         ".git",
         ".github",
@@ -103,6 +142,7 @@ def build_repository_tree():
 
 
 def load_files(file_list):
+
     content = ""
 
     for file_path in file_list:
@@ -157,13 +197,8 @@ def add_label(label_name):
 
 def publish_comment(body):
 
-    comment_url = (
-        f"https://api.github.com/repos/"
-        f"{REPO_NAME}/issues/{ISSUE_NUMBER}/comments"
-    )
-
     response = requests.post(
-        comment_url,
+        f"https://api.github.com/repos/{REPO_NAME}/issues/{ISSUE_NUMBER}/comments",
         headers=get_headers(),
         json={
             "body": body
@@ -187,11 +222,13 @@ def select_files():
     prompt = f"""
 Tu es un développeur senior.
 
-Voici l'arborescence d'un dépôt GitHub.
+Voici l'arborescence du dépôt.
+
+=== ARBORESCENCE ===
 
 {repository_tree}
 
-Issue :
+=== ISSUE ===
 
 Titre :
 {ISSUE_TITLE}
@@ -199,8 +236,7 @@ Titre :
 Description :
 {ISSUE_BODY}
 
-Quels sont les fichiers les plus pertinents
-pour traiter cette issue ?
+Quels fichiers doivent être consultés pour traiter cette issue ?
 
 Réponds UNIQUEMENT avec un tableau JSON.
 
@@ -232,17 +268,33 @@ def analyse_issue():
         selected_files
     )
 
+    comments_context = build_comments_context()
+
+    print("=== COMMENTS CONTEXT ===")
+    print(comments_context)
+
     analysis_prompt = f"""
 Tu es un ingénieur logiciel senior.
 
-Tu analyses une issue GitHub.
+Tu participes à une discussion GitHub.
 
-Tu as accès au code réel du dépôt.
+Tu dois prendre en compte :
+
+- l'issue initiale
+- le code du dépôt
+- l'historique des commentaires
+- les remarques humaines
+- les corrections apportées à tes propositions
+
+Si un humain critique une solution proposée,
+tu dois adapter ton raisonnement.
+
+Ne répète jamais une solution déjà rejetée.
 
 Tu ne dois jamais prétendre avoir exécuté
 l'application.
 
-Issue :
+=== ISSUE ===
 
 Titre :
 {ISSUE_TITLE}
@@ -250,7 +302,11 @@ Titre :
 Description :
 {ISSUE_BODY}
 
-Code :
+=== COMMENTAIRES ===
+
+{comments_context}
+
+=== CODE ===
 
 {code_context}
 
@@ -321,27 +377,36 @@ def approve_issue():
 
 `agent:implementing`
 
-La création automatique de branche
-sera implémentée dans la prochaine étape.
+La prochaine étape sera :
+
+- création de branche
+- modification du code
+- création de Pull Request
 """
     )
 
 
-if EVENT_NAME == "issue_comment":
+def main():
 
-    if COMMENT_BODY.strip() == "/approve":
-        approve_issue()
-    else:
+    if EVENT_NAME == "issue_comment":
+
+        if COMMENT_BODY.strip() == "/approve":
+            approve_issue()
+        else:
+            analyse_issue()
+
+    elif EVENT_NAME in [
+        "issues",
+        "workflow_dispatch"
+    ]:
         analyse_issue()
 
-elif EVENT_NAME in [
-    "issues",
-    "workflow_dispatch"
-]:
-    analyse_issue()
+    else:
 
-else:
+        print(
+            f"Événement ignoré : {EVENT_NAME}"
+        )
 
-    print(
-        f"Événement ignoré : {EVENT_NAME}"
-    )
+
+if __name__ == "__main__":
+    main()
