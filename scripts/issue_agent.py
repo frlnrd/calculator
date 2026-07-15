@@ -4,6 +4,9 @@ import requests
 
 MODEL = "openai/gpt-oss-120b"
 
+EVENT_NAME = os.environ.get("EVENT_NAME", "")
+COMMENT_BODY = os.environ.get("COMMENT_BODY", "")
+
 GROK_API_KEY = os.environ["GROK_API_KEY"]
 GITHUB_TOKEN = os.environ["GITHUB_TOKEN"]
 
@@ -12,9 +15,19 @@ ISSUE_BODY = os.environ.get("ISSUE_BODY", "")
 ISSUE_NUMBER = os.environ.get("ISSUE_NUMBER", "")
 REPO_NAME = os.environ.get("REPO_NAME", "")
 
+print("=== EVENT ===")
+print(EVENT_NAME)
+
 if not ISSUE_NUMBER:
     print("Aucune issue détectée.")
     exit(0)
+
+
+def get_headers():
+    return {
+        "Authorization": f"Bearer {GITHUB_TOKEN}",
+        "Accept": "application/vnd.github+json"
+    }
 
 
 def call_llm(prompt):
@@ -39,11 +52,12 @@ def call_llm(prompt):
         timeout=60
     )
 
-    print("=== STATUS ===")
+    print("=== GROQ STATUS ===")
     print(response.status_code)
 
     if response.status_code != 200:
         print(response.text)
+
         raise Exception(
             f"Erreur IA {response.status_code}: {response.text}"
         )
@@ -102,6 +116,7 @@ def load_files(file_list):
             continue
 
         try:
+
             with open(
                 file_path,
                 "r",
@@ -117,22 +132,59 @@ def load_files(file_list):
 
             content += file_content[:10000]
 
-        except Exception as e:
-            print(f"Erreur lecture {file_path}: {e}")
+        except Exception as ex:
+
+            print(
+                f"Erreur lecture {file_path}: {ex}"
+            )
 
     return content
 
 
-# --------------------------------------------------
-# ETAPE 1 : ARBORESCENCE
-# --------------------------------------------------
+def add_label(label_name):
 
-repository_tree = build_repository_tree()
+    response = requests.post(
+        f"https://api.github.com/repos/{REPO_NAME}/issues/{ISSUE_NUMBER}/labels",
+        headers=get_headers(),
+        json={
+            "labels": [label_name]
+        }
+    )
 
-print("=== REPOSITORY TREE ===")
-print(repository_tree)
+    print(f"=== LABEL {label_name} ===")
+    print(response.status_code)
 
-file_selection_prompt = f"""
+
+def publish_comment(body):
+
+    comment_url = (
+        f"https://api.github.com/repos/"
+        f"{REPO_NAME}/issues/{ISSUE_NUMBER}/comments"
+    )
+
+    response = requests.post(
+        comment_url,
+        headers=get_headers(),
+        json={
+            "body": body
+        },
+        timeout=30
+    )
+
+    print("=== GITHUB STATUS ===")
+    print(response.status_code)
+
+    response.raise_for_status()
+
+
+def select_files():
+
+    repository_tree = build_repository_tree()
+
+    print("=== REPOSITORY TREE ===")
+    print(repository_tree)
+
+    prompt = f"""
 Tu es un développeur senior.
 
 Voici l'arborescence d'un dépôt GitHub.
@@ -147,59 +199,47 @@ Titre :
 Description :
 {ISSUE_BODY}
 
-Quels sont les fichiers les plus pertinents pour
-traiter cette issue ?
+Quels sont les fichiers les plus pertinents
+pour traiter cette issue ?
 
-Réponds UNIQUEMENT par un JSON.
+Réponds UNIQUEMENT avec un tableau JSON.
 
 Exemple :
 
 ["style.css", "index.html"]
-
-Ne mets aucun texte avant ou après le JSON.
 """
 
-selected_files_response = call_llm(
-    file_selection_prompt
-)
+    response = call_llm(prompt)
 
-print("=== SELECTED FILES RAW ===")
-print(selected_files_response)
+    print("=== SELECTED FILES RAW ===")
+    print(response)
 
-try:
+    try:
+        return json.loads(response)
 
-    selected_files = json.loads(
-        selected_files_response
+    except Exception:
+        return []
+
+
+def analyse_issue():
+
+    selected_files = select_files()
+
+    print("=== SELECTED FILES ===")
+    print(selected_files)
+
+    code_context = load_files(
+        selected_files
     )
 
-except Exception:
-
-    selected_files = []
-
-print("=== SELECTED FILES ===")
-print(selected_files)
-
-# --------------------------------------------------
-# ETAPE 2 : CHARGEMENT DU CODE
-# --------------------------------------------------
-
-code_context = load_files(selected_files)
-
-print("=== CODE CONTEXT SIZE ===")
-print(len(code_context))
-
-# --------------------------------------------------
-# ETAPE 3 : ANALYSE
-# --------------------------------------------------
-
-analysis_prompt = f"""
+    analysis_prompt = f"""
 Tu es un ingénieur logiciel senior.
 
 Tu analyses une issue GitHub.
 
 Tu as accès au code réel du dépôt.
 
-Tu ne dois pas prétendre avoir exécuté
+Tu ne dois jamais prétendre avoir exécuté
 l'application.
 
 Issue :
@@ -233,18 +273,18 @@ Notée de 1/5 à 5/5
 ## Plan d'action
 """
 
-analysis = call_llm(
-    analysis_prompt
-)
+    analysis = call_llm(
+        analysis_prompt
+    )
 
-print("=== ANALYSIS ===")
-print(analysis)
+    print("=== ANALYSIS ===")
+    print(analysis)
 
-# --------------------------------------------------
-# ETAPE 4 : COMMENTAIRE GITHUB
-# --------------------------------------------------
+    add_label(
+        "agent:waiting-approval"
+    )
 
-comment_body = f"""## 🤖 Analyse automatique
+    comment_body = f"""## 🤖 Analyse automatique
 
 **Modèle utilisé :** `{MODEL}`
 
@@ -255,31 +295,53 @@ comment_body = f"""## 🤖 Analyse automatique
 ---
 
 {analysis}
+
+---
+
+Pour lancer l'implémentation :
+
+`/approve`
 """
 
-comment_url = (
-    f"https://api.github.com/repos/"
-    f"{REPO_NAME}/issues/{ISSUE_NUMBER}/comments"
-)
+    publish_comment(
+        comment_body
+    )
 
-github_response = requests.post(
-    comment_url,
-    headers={
-        "Authorization": f"Bearer {GITHUB_TOKEN}",
-        "Accept": "application/vnd.github+json"
-    },
-    json={
-        "body": comment_body
-    },
-    timeout=30
-)
 
-print("=== GITHUB STATUS ===")
-print(github_response.status_code)
+def approve_issue():
 
-print("=== GITHUB RESPONSE ===")
-print(github_response.text)
+    add_label(
+        "agent:implementing"
+    )
 
-github_response.raise_for_status()
+    publish_comment(
+        """✅ Validation reçue.
 
-print("✅ Commentaire publié avec succès.")
+État actuel :
+
+`agent:implementing`
+
+La création automatique de branche
+sera implémentée dans la prochaine étape.
+"""
+    )
+
+
+if EVENT_NAME == "issue_comment":
+
+    if COMMENT_BODY.strip() == "/approve":
+        approve_issue()
+    else:
+        analyse_issue()
+
+elif EVENT_NAME in [
+    "issues",
+    "workflow_dispatch"
+]:
+    analyse_issue()
+
+else:
+
+    print(
+        f"Événement ignoré : {EVENT_NAME}"
+    )
