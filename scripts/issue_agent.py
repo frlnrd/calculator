@@ -741,7 +741,15 @@ def checkout_branch(branch_name):
         ],
         check=False
     )
+    subprocess.run(
+        ["git", "branch", "-a"],
+        check=False
+    )
 
+    subprocess.run(
+        ["git", "branch", "--show-current"],
+        check=False
+    )
     print(f"=== CHECKOUT {branch_name} ===")
 
 
