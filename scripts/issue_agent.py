@@ -36,12 +36,25 @@ REVIEW_BODY = os.environ.get(
     "REVIEW_BODY",
     ""
 )
+PR_NUMBER = os.environ.get(
+    "PR_NUMBER",
+    ""
+)
 print("=== EVENT ===")
 print(EVENT_NAME)
+print("=== ISSUE NUMBER ===")
+print(ISSUE_NUMBER)
+print("=== PR NUMBER ===")
+print(PR_NUMBER)
 
-if not ISSUE_NUMBER:
-    print("Aucune issue détectée.")
-    exit(0)
+if EVENT_NAME in [
+    "issues",
+    "issue_comment"
+]:
+    if not ISSUE_NUMBER:
+        print("Aucune issue détectée.")
+        exit(0)
+
 
 PROTECTED_PATHS = [
     ".git/",
