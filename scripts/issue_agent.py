@@ -705,54 +705,34 @@ def get_latest_agent_analysis():
 def checkout_branch(branch_name):
 
     subprocess.run(
-        ["git", "fetch", "origin"],
+        [
+            "git",
+            "fetch",
+            "origin",
+            branch_name
+        ],
         check=True
     )
 
-    result = subprocess.run(
+    subprocess.run(
         [
             "git",
             "checkout",
-            branch_name
+            "-B",
+            branch_name,
+            f"origin/{branch_name}"
         ],
-        capture_output=True,
-        text=True
+        check=True
     )
 
-    if result.returncode != 0:
-
-        subprocess.run(
-            [
-                "git",
-                "checkout",
-                "-b",
-                branch_name
-            ],
-            check=True
-        )
-
-    subprocess.run(
-        [
-            "git",
-            "branch",
-            "--set-upstream-to",
-            f"origin/{branch_name}",
-            branch_name
-        ],
-        check=False
-    )
-    subprocess.run(
-        ["git", "branch", "-a"],
-        check=False
-    )
+    print("=== CURRENT BRANCH ===")
 
     subprocess.run(
         ["git", "branch", "--show-current"],
         check=False
     )
+
     print(f"=== CHECKOUT {branch_name} ===")
-
-
 
 def generate_implementation(
     analysis,
