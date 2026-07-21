@@ -48,7 +48,13 @@ function calculate() {
         }
         
         const result = Function('"use strict"; return (' + display.value + ')')();
-        display.value = result;
+        
+        // Replace Infinity / -Infinity with NaN
+        if (!isFinite(result)) {
+            display.value = 'NaN';
+        } else {
+            display.value = result;
+        }
     } catch (error) {
         display.value = 'Error';
         setTimeout(() => {

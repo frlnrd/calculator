@@ -47,11 +47,15 @@ body {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 10px;
+    grid-auto-rows: 1fr;               /* même hauteur que la largeur */
 }
 
+/* ----- Boutons généraux ----- */
 .btn {
-    padding: 20px;
-    font-size: 1.5em;
+    /* aspect carré */
+    aspect-ratio: 1 / 1;
+    font-size: clamp(0.8rem, 2.5vw, 1.5rem);
+    padding: 0;                        /* géré par aspect‑ratio */
     border: none;
     border-radius: 10px;
     cursor: pointer;
@@ -59,6 +63,12 @@ body {
     color: #333;
     font-weight: 600;
     transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 
 .btn:hover {
@@ -71,6 +81,7 @@ body {
     box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
+/* ----- Couleurs spécifiques ----- */
 .function-btn {
     background: #667eea;
     color: white;
@@ -80,16 +91,22 @@ body {
     background: #5568d3;
 }
 
-/* -------------------------------------------------
-   Bouton DEL – couleur rouge
-   ------------------------------------------------- */
-.del-btn {
-    background: #e53e3e; /* rouge moyen */
-    /* color hérité de .function-btn (blanc) */
+.clear-btn {                     /* bouton C */
+    background: #e53e3e;        /* rouge moyen */
+    color: #fff;
+}
+
+.clear-btn:hover {
+    background: #c53030;
+}
+
+.del-btn {                      /* bouton DEL */
+    background: #f6ad55;        /* orange moyen */
+    color: #fff;
 }
 
 .del-btn:hover {
-    background: #c53030; /* rouge plus foncé */
+    background: #ed8936;
 }
 
 .equals-btn {
@@ -104,6 +121,11 @@ body {
 
 .zero {
     grid-column: span 2;
+    aspect-ratio: auto;           /* désactive le carré pour le 0 */
+}
+
+.equals-btn {
+    aspect-ratio: auto;           /* désactive le carré pour = */
 }
 
 @media (max-width: 480px) {
@@ -118,7 +140,6 @@ body {
     }
 
     .btn {
-        padding: 15px;
         font-size: 1.2em;
     }
 }
