@@ -45,5 +45,9 @@ jobs:
           COMMENT_BODY: ${{ github.event.comment.body }}
 
           REPO_NAME: ${{ github.repository }}
+          EVENT_NAME: ${{ github.event_name }}
+          REVIEW_STATE: ${{ github.event.review.state }}
+          REVIEW_BODY: ${{ github.event.review.body }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
 
         run: python scripts/issue_agent.py

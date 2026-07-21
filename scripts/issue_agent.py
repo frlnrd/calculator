@@ -28,7 +28,14 @@ ISSUE_TITLE = os.environ.get("ISSUE_TITLE", "")
 ISSUE_BODY = os.environ.get("ISSUE_BODY", "")
 ISSUE_NUMBER = os.environ.get("ISSUE_NUMBER", "")
 REPO_NAME = os.environ.get("REPO_NAME", "")
-
+REVIEW_STATE = os.environ.get(
+    "REVIEW_STATE",
+    ""
+)
+REVIEW_BODY = os.environ.get(
+    "REVIEW_BODY",
+    ""
+)
 print("=== EVENT ===")
 print(EVENT_NAME)
 
@@ -839,6 +846,106 @@ def assign_pull_request(pr_number):
     )
     response.raise_for_status()
 
+def handle_changes_requested():
+
+    current_state = get_current_state()
+
+    if current_state != "agent:waiting-review":
+        return
+
+    set_state(
+        "agent:implementing"
+    )
+
+    analysis = get_latest_agent_analysis()
+
+    selected_files = select_files()
+
+    code_context = load_files(
+        selected_files
+    )
+
+    review_context = build_review_context()
+
+    implementation_prompt = f"""
+Tu es un développeur senior.
+
+Une Pull Request a reçu une demande de modification.
+
+Tu dois corriger l'implémentation précédente.
+
+=== ANALYSE VALIDEE ===
+
+{analysis}
+
+=== REVIEW ===
+
+{review_context}
+
+=== CODE ===
+
+{code_context}
+
+Réponds UNIQUEMENT avec un JSON valide.
+
+Format :
+
+{{
+  "files": [
+    {{
+      "path": "style.css",
+      "content": "..."
+    }}
+  ]
+}}
+"""
+
+    response = call_llm(
+        implementation_prompt
+    )
+
+    changes = json.loads(
+        response
+    )
+
+    apply_changes(
+        changes
+    )
+
+    commit_changes()
+
+    push_branch(
+        f"agent/issue-{ISSUE_NUMBER}"
+    )
+
+    set_state(
+        "agent:waiting-review"
+    )
+
+    publish_comment(
+        """✅ Demandes de revue prises en compte.
+
+Un nouveau commit a été poussé sur la branche associée à l'issue.
+"""
+    )
+
+def build_review_context():
+
+    if not REVIEW_BODY:
+        return ""
+
+    return f"""
+=== REVIEW CHANGES REQUESTED ===
+
+Etat :
+
+{REVIEW_STATE}
+
+Commentaire du reviewer :
+
+{REVIEW_BODY}
+"""
+
 def main():
 
     if EVENT_NAME == "issue_comment":
@@ -854,7 +961,15 @@ def main():
     ]:
 
         analyse_issue()
-
+    elif EVENT_NAME == "pull_request_review":
+        print("=== REVIEW STATE ===")
+        print(REVIEW_STATE)
+        print("=== REVIEW BODY ===")
+        print(REVIEW_BODY)
+        #if REVIEW_STATE == "changes_requested":
+        #    handle_changes_requested()
+        #elif REVIEW_STATE == "approved":
+        #    handle_review_approved()
     else:
 
         print(
