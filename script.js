@@ -1,6 +1,22 @@
 const display = document.getElementById('display');
 
+// -------------------------------------------------
+// Helper : remet le display à zéro si son contenu
+// n’est plus une valeur numérique exploitable.
+// -------------------------------------------------
+function resetIfInvalid() {
+    const num = Number(display.value);
+    // Number('NaN') => NaN, Number('Error') => NaN, Infinity => Infinity
+    if (!Number.isFinite(num) || Number.isNaN(num)) {
+        // Utilise clearDisplay() pour garder le même style/effet visuel
+        clearDisplay();
+    }
+}
+
 function appendNumber(num) {
+    // Si le display montre une erreur, on le réinitialise
+    resetIfInvalid();
+
     if (display.value === '0' && num !== '.') {
         display.value = num;
     } else if (num === '.' && display.value.includes('.')) {
@@ -11,6 +27,9 @@ function appendNumber(num) {
 }
 
 function appendOperator(operator) {
+    // Même logique que pour les chiffres : on repart d’un état « propre »
+    resetIfInvalid();
+
     const lastChar = display.value[display.value.length - 1];
     
     // Prevent multiple operators in a row
