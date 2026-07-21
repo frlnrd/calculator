@@ -1,3 +1,5 @@
+// script.js
+
 const display = document.getElementById('display');
 
 // -------------------------------------------------
@@ -8,9 +10,12 @@ function resetIfInvalid() {
     const num = Number(display.value);
     // Number('NaN') => NaN, Number('Error') => NaN, Infinity => Infinity
     if (!Number.isFinite(num) || Number.isNaN(num)) {
-        // Utilise clearDisplay() pour garder le même style/effet visuel
-        clearDisplay();
+        clearDisplay(); // utilise la même logique que le bouton C
     }
+}
+
+function clearDisplay() {
+    display.value = '0';
 }
 
 function appendNumber(num) {
@@ -20,7 +25,7 @@ function appendNumber(num) {
     if (display.value === '0' && num !== '.') {
         display.value = num;
     } else if (num === '.' && display.value.includes('.')) {
-        return;
+        return; // évite plusieurs points décimaux
     } else {
         display.value += num;
     }
@@ -31,74 +36,45 @@ function appendOperator(operator) {
     resetIfInvalid();
 
     const lastChar = display.value[display.value.length - 1];
-    
-    // Prevent multiple operators in a row
+    // Empêche d'avoir plusieurs opérateurs consécutifs
     if (['+', '-', '*', '/'].includes(lastChar)) {
         return;
     }
-    
-    // Prevent operator as first input
-    if (display.value === '') {
-        return;
-    }
-    
     display.value += operator;
-}
-
-function clearDisplay() {
-    display.value = '0';
-}
-
-function deleteLast() {
-    if (display.value.length > 1) {
-        display.value = display.value.slice(0, -1);
-    } else {
-        display.value = '0';
-    }
 }
 
 function calculate() {
     try {
         const lastChar = display.value[display.value.length - 1];
-        
-        // Prevent calculation if expression ends with operator
+        // Si le dernier caractère est un opérateur, on le retire avant le calcul
         if (['+', '-', '*', '/'].includes(lastChar)) {
-            return;
+            display.value = display.value.slice(0, -1);
         }
-        
+        // Évaluation sécurisée de l'expression
         const result = Function('"use strict"; return (' + display.value + ')')();
-        
-        // Replace Infinity / -Infinity with NaN
-        if (!isFinite(result)) {
+        // Si le résultat n'est pas fini (Infinity, -Infinity, NaN) → affichage NaN
+        if (!Number.isFinite(result) || Number.isNaN(result)) {
             display.value = 'NaN';
         } else {
             display.value = result;
         }
-    } catch (error) {
+    } catch (e) {
+        // En cas d'erreur de syntaxe ou autre, on indique Error
         display.value = 'Error';
-        setTimeout(() => {
-            display.value = '0';
-        }, 1500);
     }
 }
 
-// Initialize display
-display.value = '0';
-
-// Keyboard support
-document.addEventListener('keydown', (e) => {
-    if (e.key >= '0' && e.key <= '9') {
-        appendNumber(e.key);
-    } else if (e.key === '.') {
-        appendNumber('.');
-    } else if (e.key === '+' || e.key === '-' || e.key === '*' || e.key === '/') {
-        appendOperator(e.key);
-    } else if (e.key === 'Enter' || e.key === '=') {
-        e.preventDefault();
-        calculate();
-    } else if (e.key === 'Backspace') {
-        deleteLast();
-    } else if (e.key === 'Escape') {
-        clearDisplay();
-    }
+// -------------------------------------------------
+// Gestion des événements (exemple simple)
+// -------------------------------------------------
+document.querySelectorAll('.num').forEach(btn => {
+    btn.addEventListener('click', () => appendNumber(btn.dataset.value));
 });
+
+document.querySelectorAll('.op').forEach(btn => {
+    btn.addEventListener('click', () => appendOperator(btn.dataset.value));
+});
+
+document.getElementById('equals').addEventListener('click', calculate);
+
+document.getElementById('clear').addEventListener('click', clearDisplay);
