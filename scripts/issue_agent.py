@@ -556,10 +556,13 @@ L'approbation n'est possible que depuis :
         # Pull Request
         #
 
-        pr_url = create_pull_request(
+        pr = create_pull_request(
             branch_name
         )
-
+        assign_pull_request(
+            pr["number"]
+        )
+        pr_url = pr["html_url"]
         set_state(
             "agent:waiting-review"
         )
@@ -795,12 +798,18 @@ def push_branch(branch_name):
         [
             "git",
             "push",
+            "--set-upstream",
             "origin",
             branch_name
         ],
+        capture_output=True,
         check=True
     )
-
+    print("=== PUSH STDOUT ===")
+    print(result.stdout)
+    print("=== PUSH STDERR ===")
+    print(result.stderr)
+    result.check_returncode()
 
 def create_pull_request(branch_name):
 
@@ -814,11 +823,21 @@ def create_pull_request(branch_name):
             "body": f"Fixes #{ISSUE_NUMBER}"
         }
     )
-
     response.raise_for_status()
+    return response.json()
 
-    return response.json()["html_url"]
+def assign_pull_request(pr_number):
 
+    response = requests.post(
+        f"https://api.github.com/repos/{REPO_NAME}/issues/{pr_number}/assignees",
+        headers=get_headers(),
+        json={
+            "assignees": [
+                "frlnrd"
+            ]
+        }
+    )
+    response.raise_for_status()
 
 def main():
 
