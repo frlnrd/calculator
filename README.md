@@ -1,20 +1,22 @@
-# calculator
+# Calculatrice
 
-Features:
+## Fonctionnalités
 
-✅ Full Calculator Operations: Addition, subtraction, multiplication, division
-✅ Decimal Support: Handle floating-point calculations
-✅ User-Friendly Design: Modern UI with gradient background and smooth animations
-✅ Error Handling: Prevents invalid inputs and shows error messages
-✅ Keyboard Support: Use your keyboard for faster input
+- ✅ **Opérations complètes** : addition, soustraction, multiplication, division
+- ✅ **Gestion des décimaux** : prise en charge des calculs à virgule flottante
+- ✅ **Interface conviviale** : UI moderne avec fond en dégradé et animations fluides
+- ✅ **Gestion des erreurs** : empêche les entrées invalides et affiche des messages d’erreur
+- ✅ **Support clavier** : utilisez le clavier pour une saisie plus rapide
 
-    Numbers: 0-9
-    Operators: +, -, *, /
-    Calculate: Enter or =
-    Delete: Backspace
-    Clear: Escape
+```text
+Nombres : 0‑9
+Opérateurs : +, -, *, /
+Calculer : Entrée ou =
+Supprimer : Retour arrière
+Effacer : Échap
+```
 
-✅ Responsive Design: Works on mobile and desktop
-✅ Smart Input Prevention: Avoids consecutive operators and invalid expressions
+- ✅ **Design réactif** : fonctionne sur mobile et ordinateur de bureau
+- ✅ **Prévention d’entrées incorrectes** : évite les opérateurs consécutifs et les expressions invalides
 
-Just save these three files in the same directory and open index.html in your browser!
+Enregistrez ces trois fichiers dans le même répertoire et ouvrez `index.html` dans votre navigateur !
