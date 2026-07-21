@@ -794,7 +794,7 @@ def push_branch(branch_name):
 
     import subprocess
 
-    subprocess.run(
+    result = subprocess.run(
         [
             "git",
             "push",
