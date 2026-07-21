@@ -13,6 +13,11 @@ STATES = [
     "agent:completed"
 ]
 
+PROTECTED_PATHS = [
+    ".git/",
+    ".github/"
+]
+
 EVENT_NAME = os.environ.get("EVENT_NAME", "")
 COMMENT_BODY = os.environ.get("COMMENT_BODY", "")
 
@@ -31,13 +36,36 @@ if not ISSUE_NUMBER:
     print("Aucune issue détectée.")
     exit(0)
 
+PROTECTED_PATHS = [
+    ".git/",
+    ".github/"
+]
+
+def validate_path(path):
+
+    if path.startswith("/"):
+        raise Exception(
+            f"Chemin absolu interdit : {path}"
+        )
+
+    if ".." in path:
+        raise Exception(
+            f"Path traversal interdit : {path}"
+        )
+
+    for protected_path in PROTECTED_PATHS:
+
+        if path.startswith(protected_path):
+
+            raise Exception(
+                f"Modification interdite : {path}"
+            )
 
 def get_headers():
     return {
         "Authorization": f"Bearer {GITHUB_TOKEN}",
         "Accept": "application/vnd.github+json"
     }
-
 
 def get_current_labels():
 
@@ -54,7 +82,6 @@ def get_current_labels():
         for label in response.json()["labels"]
     ]
 
-
 def get_current_state():
 
     labels = get_current_labels()
@@ -65,7 +92,6 @@ def get_current_state():
             return state
 
     return None
-
 
 def call_llm(prompt):
 
@@ -699,6 +725,7 @@ def apply_changes(changes):
     for file in files:
 
         path = file["path"]
+        validate_path(path)
         content = file["content"]
 
         with open(
