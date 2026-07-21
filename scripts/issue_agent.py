@@ -715,6 +715,8 @@ Format :
 
     response = call_llm(prompt)
 
+    print("=== GENERATED IMPLEMENTATION RAW ===")
+    print(response)
     return json.loads(response)
 
 
