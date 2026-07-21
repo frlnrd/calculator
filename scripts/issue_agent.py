@@ -1020,14 +1020,20 @@ def main():
 
         analyse_issue()
     elif EVENT_NAME == "pull_request_review":
+
+        ISSUE_NUMBER = get_issue_number_from_pr()
+
+        print("=== ISSUE NUMBER ===")
+        print(ISSUE_NUMBER)
+
         print("=== REVIEW STATE ===")
         print(REVIEW_STATE)
+
         print("=== REVIEW BODY ===")
         print(REVIEW_BODY)
-        #if REVIEW_STATE == "changes_requested":
-        #    handle_changes_requested()
-        #elif REVIEW_STATE == "approved":
-        #    handle_review_approved()
+
+        if REVIEW_STATE == "changes_requested":
+            handle_changes_requested()
     else:
 
         print(
