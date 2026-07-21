@@ -917,6 +917,12 @@ def handle_changes_requested():
     if current_state != "agent:waiting-review":
         return
 
+    branch_name = f"agent/issue-{ISSUE_NUMBER}"
+
+    checkout_branch(
+        branch_name
+    )
+
     set_state(
         "agent:implementing"
     )
@@ -967,8 +973,10 @@ Format :
     response = call_llm(
         implementation_prompt
     )
+
     print("=== IMPLEMENTATION RAW RESPONSE ===")
     print(response)
+
     changes = json.loads(
         response
     )
@@ -980,7 +988,7 @@ Format :
     commit_changes()
 
     push_branch(
-        f"agent/issue-{ISSUE_NUMBER}"
+        branch_name
     )
 
     set_state(
