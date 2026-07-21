@@ -965,6 +965,7 @@ Commentaire du reviewer :
 
 {REVIEW_BODY}
 """
+
 def get_issue_number_from_pr():
 
     response = requests.get(
