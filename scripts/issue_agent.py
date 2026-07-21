@@ -40,6 +40,13 @@ PR_NUMBER = os.environ.get(
     "PR_NUMBER",
     ""
 )
+if EVENT_NAME == "pull_request_review":
+
+    ISSUE_NUMBER = get_issue_number_from_pr()
+
+    print("=== ISSUE NUMBER FROM PR ===")
+    print(ISSUE_NUMBER)
+
 print("=== EVENT ===")
 print(EVENT_NAME)
 print("=== ISSUE NUMBER ===")
@@ -958,6 +965,32 @@ Commentaire du reviewer :
 
 {REVIEW_BODY}
 """
+def get_issue_number_from_pr():
+
+    response = requests.get(
+        f"https://api.github.com/repos/{REPO_NAME}/pulls/{PR_NUMBER}",
+        headers=get_headers(),
+        timeout=30
+    )
+
+    response.raise_for_status()
+
+    branch_name = response.json()["head"]["ref"]
+
+    print("=== PR BRANCH ===")
+    print(branch_name)
+
+    if not branch_name.startswith(
+        "agent/issue-"
+    ):
+        raise Exception(
+            f"Branche invalide : {branch_name}"
+        )
+
+    return branch_name.replace(
+        "agent/issue-",
+        ""
+    )
 
 def main():
 
