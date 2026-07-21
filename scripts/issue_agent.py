@@ -40,12 +40,6 @@ PR_NUMBER = os.environ.get(
     "PR_NUMBER",
     ""
 )
-if EVENT_NAME == "pull_request_review":
-
-    ISSUE_NUMBER = get_issue_number_from_pr()
-
-    print("=== ISSUE NUMBER FROM PR ===")
-    print(ISSUE_NUMBER)
 
 print("=== EVENT ===")
 print(EVENT_NAME)
@@ -993,7 +987,24 @@ def get_issue_number_from_pr():
         ""
     )
 
+def resolve_issue_number():
+
+    if ISSUE_NUMBER:
+        return ISSUE_NUMBER
+
+    if EVENT_NAME == "pull_request_review":
+        return get_issue_number_from_pr()
+
+    return ISSUE_NUMBER
+
 def main():
+
+    global ISSUE_NUMBER
+
+    ISSUE_NUMBER = resolve_issue_number()
+
+    print("=== ISSUE NUMBER ===")
+    print(ISSUE_NUMBER)
 
     if EVENT_NAME == "issue_comment":
 
