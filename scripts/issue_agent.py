@@ -370,11 +370,18 @@ Exemple :
     print(response)
 
     try:
-        return json.loads(response)
-
+        selected_files = json.loads(response)
+        selected_files = [
+            f.strip()
+            for f in selected_files
+            if isinstance(f, str)
+            and f.strip()
+        ]
+        print("=== SELECTED FILES FILTERED ===")
+        print(selected_files)
+        return selected_files
     except Exception:
         return []
-
 
 def analyse_issue():
 
@@ -698,11 +705,45 @@ def get_latest_agent_analysis():
 def checkout_branch(branch_name):
 
     subprocess.run(
-        ["git", "checkout", "-B", branch_name],
+        ["git", "fetch", "origin"],
         check=True
     )
 
+    result = subprocess.run(
+        [
+            "git",
+            "checkout",
+            branch_name
+        ],
+        capture_output=True,
+        text=True
+    )
+
+    if result.returncode != 0:
+
+        subprocess.run(
+            [
+                "git",
+                "checkout",
+                "-b",
+                branch_name
+            ],
+            check=True
+        )
+
+    subprocess.run(
+        [
+            "git",
+            "branch",
+            "--set-upstream-to",
+            f"origin/{branch_name}",
+            branch_name
+        ],
+        check=False
+    )
+
     print(f"=== CHECKOUT {branch_name} ===")
+
 
 
 def generate_implementation(
@@ -813,8 +854,6 @@ def commit_changes():
 
 def push_branch(branch_name):
 
-    import subprocess
-
     result = subprocess.run(
         [
             "git",
@@ -824,12 +863,15 @@ def push_branch(branch_name):
             branch_name
         ],
         capture_output=True,
-        check=True
+        text=True
     )
+
     print("=== PUSH STDOUT ===")
     print(result.stdout)
+
     print("=== PUSH STDERR ===")
     print(result.stderr)
+
     result.check_returncode()
 
 def create_pull_request(branch_name):
