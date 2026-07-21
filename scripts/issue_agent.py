@@ -917,7 +917,8 @@ Format :
     response = call_llm(
         implementation_prompt
     )
-
+    print("=== IMPLEMENTATION RAW RESPONSE ===")
+    print(response)
     changes = json.loads(
         response
     )
