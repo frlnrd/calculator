@@ -715,10 +715,16 @@ Format :
 
     response = call_llm(prompt)
 
-    print("=== GENERATED IMPLEMENTATION RAW ===")
-    print(response)
-    return json.loads(response)
-
+    try:
+        print("=== GENERATED IMPLEMENTATION RAW ===")
+        print(response)
+        return json.loads(response)
+    except Exception as ex:
+        print("=== JSON ERROR ===")
+        print(ex)
+        print("=== INVALID JSON ===")
+        print(response)
+        raise
 
 def apply_changes(changes):
 
