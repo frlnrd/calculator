@@ -13,10 +13,14 @@
                 <input type="text" id="display" readonly>
             </div>
             <div class="buttons">
-                <button class="btn function-btn" onclick="clearDisplay()">C</button>
-                <button class="btn function-btn del-btn" onclick="deleteLast()">DEL</button>
-                <button class="btn function-btn" onclick="appendOperator('/')">/</button>
-                <button class="btn function-btn" onclick="appendOperator('*')">*</button>
+                <!-- C : bouton rouge -->
+                <button class="btn clear-btn" onclick="clearDisplay()">C</button>
+                <!-- DEL : bouton orange -->
+                <button class="btn del-btn" onclick="deleteLast()">DEL</button>
+                <!-- Division affichée ':' mais opérateur '/' -->
+                <button class="btn function-btn" onclick="appendOperator('/')">:</button>
+                <!-- Multiplication affichée 'x' mais opérateur '*' -->
+                <button class="btn function-btn" onclick="appendOperator('*')">x</button>
 
                 <button class="btn" onclick="appendNumber('7')">7</button>
                 <button class="btn" onclick="appendNumber('8')">8</button>
