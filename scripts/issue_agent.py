@@ -36,7 +36,7 @@ from config import (
     REVIEW_BODY,
     PR_NUMBER
 )
-from scripts.prompts import (
+from prompts import (
     FILE_SELECTION_PROMPT,
     ANALYSIS_PROMPT,
     IMPLEMENTATION_PROMPT,

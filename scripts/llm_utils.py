@@ -1,6 +1,6 @@
 import requests
 
-from scripts.config import GROK_API_KEY, REPO_NAME
+from config import GROK_API_KEY, REPO_NAME
 
 MODEL = "openai/gpt-oss-120b"
 
