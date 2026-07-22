@@ -1,44 +1,46 @@
-import os
 import json
-import subprocess
+import os
 import requests
 
-
-MODEL = "openai/gpt-oss-120b"
-
-STATES = [
-    "agent:waiting-approval",
-    "agent:implementing",
-    "agent:waiting-review",
-    "agent:completed"
-]
-
-PROTECTED_PATHS = [
-    ".git/",
-    ".github/"
-]
-
-EVENT_NAME = os.environ.get("EVENT_NAME", "")
-COMMENT_BODY = os.environ.get("COMMENT_BODY", "")
-
-GROK_API_KEY = os.environ["GROK_API_KEY"]
-GITHUB_TOKEN = os.environ["GITHUB_TOKEN"]
-
-ISSUE_TITLE = os.environ.get("ISSUE_TITLE", "")
-ISSUE_BODY = os.environ.get("ISSUE_BODY", "")
-ISSUE_NUMBER = os.environ.get("ISSUE_NUMBER", "")
-REPO_NAME = os.environ.get("REPO_NAME", "")
-REVIEW_STATE = os.environ.get(
-    "REVIEW_STATE",
-    ""
+from llm_utils import (
+    call_llm,
+    MODEL
 )
-REVIEW_BODY = os.environ.get(
-    "REVIEW_BODY",
-    ""
+from github_utils import (
+    publish_comment,
+    get_issue_comments,
+    get_headers
 )
-PR_NUMBER = os.environ.get(
-    "PR_NUMBER",
-    ""
+from state_utils import (
+    set_state,
+    get_current_state
+)
+from git_utils import (
+    checkout_branch,
+    commit_changes,
+    push_branch
+)
+from constants import (
+    PROTECTED_PATHS,
+    EXCLUDED_DIRS
+)
+from config import (
+    EVENT_NAME,
+    COMMENT_BODY,
+    GITHUB_TOKEN,
+    ISSUE_TITLE,
+    ISSUE_BODY,
+    ISSUE_NUMBER,
+    REPO_NAME,
+    REVIEW_STATE,
+    REVIEW_BODY,
+    PR_NUMBER
+)
+from scripts.prompts import (
+    FILE_SELECTION_PROMPT,
+    ANALYSIS_PROMPT,
+    IMPLEMENTATION_PROMPT,
+    IMPLEMENTATION_PR_PROMPT
 )
 
 print("=== EVENT ===")
@@ -56,11 +58,6 @@ if EVENT_NAME in [
         print("Aucune issue détectée.")
         exit(0)
 
-
-PROTECTED_PATHS = [
-    ".git/",
-    ".github/"
-]
 
 def validate_path(path):
 
@@ -81,93 +78,6 @@ def validate_path(path):
             raise Exception(
                 f"Modification interdite : {path}"
             )
-
-def get_headers():
-    return {
-        "Authorization": f"Bearer {GITHUB_TOKEN}",
-        "Accept": "application/vnd.github+json"
-    }
-
-def get_current_labels():
-
-    response = requests.get(
-        f"https://api.github.com/repos/{REPO_NAME}/issues/{ISSUE_NUMBER}",
-        headers=get_headers(),
-        timeout=30
-    )
-
-    response.raise_for_status()
-
-    return [
-        label["name"]
-        for label in response.json()["labels"]
-    ]
-
-def get_current_state():
-
-    labels = get_current_labels()
-
-    for state in STATES:
-
-        if state in labels:
-            return state
-
-    return None
-
-def call_llm(prompt):
-
-    response = requests.post(
-        "https://api.groq.com/openai/v1/chat/completions",
-        headers={
-            "Authorization": f"Bearer {GROK_API_KEY}",
-            "HTTP-Referer": f"https://github.com/{REPO_NAME}",
-            "X-Title": "Calculator Agent",
-            "Content-Type": "application/json"
-        },
-        json={
-            "model": MODEL,
-            "messages": [
-                {
-                    "role": "user",
-                    "content": prompt
-                }
-            ],
-            "temperature": 0.2
-        },
-        timeout=60
-    )
-
-    print("=== GROQ STATUS ===")
-    print(response.status_code)
-
-    if response.status_code != 200:
-        print(response.text)
-
-        raise Exception(
-            f"Erreur IA {response.status_code}: {response.text}"
-        )
-
-    data = response.json()
-
-    return (
-        data.get("choices", [{}])[0]
-        .get("message", {})
-        .get("content", "")
-    )
-
-
-def get_issue_comments():
-
-    response = requests.get(
-        f"https://api.github.com/repos/{REPO_NAME}/issues/{ISSUE_NUMBER}/comments",
-        headers=get_headers(),
-        timeout=30
-    )
-
-    response.raise_for_status()
-
-    return response.json()
-
 
 def build_comments_context():
 
@@ -192,22 +102,13 @@ def build_comments_context():
 
 def build_repository_tree():
 
-    excluded_dirs = {
-        ".git",
-        ".github",
-        "node_modules",
-        "__pycache__",
-        ".venv",
-        "venv"
-    }
-
     paths = []
 
     for root, dirs, files in os.walk("."):
 
         dirs[:] = [
             d for d in dirs
-            if d not in excluded_dirs
+            if d not in EXCLUDED_DIRS
         ]
 
         for file in files:
@@ -262,74 +163,6 @@ def load_files(file_list):
     return content
 
 
-def add_label(label_name):
-
-    response = requests.post(
-        f"https://api.github.com/repos/{REPO_NAME}/issues/{ISSUE_NUMBER}/labels",
-        headers=get_headers(),
-        json={
-            "labels": [label_name]
-        }
-    )
-
-    print(f"=== ADD LABEL {label_name} ===")
-    print(response.status_code)
-
-
-def remove_label(label_name):
-
-    response = requests.delete(
-        f"https://api.github.com/repos/"
-        f"{REPO_NAME}/issues/"
-        f"{ISSUE_NUMBER}/labels/"
-        f"{label_name}",
-        headers=get_headers()
-    )
-
-    print(f"=== REMOVE LABEL {label_name} ===")
-    print(response.status_code)
-
-
-def set_state(new_state):
-
-    current_labels = get_current_labels()
-
-    if new_state in current_labels:
-
-        print(
-            f"État déjà positionné : {new_state}"
-        )
-
-        return
-
-    for state in STATES:
-
-        if state in current_labels:
-
-            remove_label(state)
-
-    add_label(new_state)
-
-    print(
-        f"Changement d'état : {new_state}"
-    )
-
-def publish_comment(body):
-
-    response = requests.post(
-        f"https://api.github.com/repos/{REPO_NAME}/issues/{ISSUE_NUMBER}/comments",
-        headers=get_headers(),
-        json={
-            "body": body
-        },
-        timeout=30
-    )
-
-    print("=== GITHUB STATUS ===")
-    print(response.status_code)
-
-    response.raise_for_status()
-
 
 def select_files():
 
@@ -338,32 +171,11 @@ def select_files():
     print("=== REPOSITORY TREE ===")
     print(repository_tree)
 
-    prompt = f"""
-Tu es un développeur senior.
-
-Voici l'arborescence du dépôt.
-
-=== ARBORESCENCE ===
-
-{repository_tree}
-
-=== ISSUE ===
-
-Titre :
-{ISSUE_TITLE}
-
-Description :
-{ISSUE_BODY}
-
-Quels fichiers semblent pertinents ?
-
-Réponds UNIQUEMENT avec un JSON.
-
-Exemple :
-
-["style.css", "index.html"]
-"""
-
+    prompt = FILE_SELECTION_PROMPT.format(
+        repository_tree=repository_tree,
+        issue_title=ISSUE_TITLE,
+        issue_body=ISSUE_BODY
+    )
     response = call_llm(prompt)
 
     print("=== SELECTED FILES RAW ===")
@@ -396,63 +208,12 @@ def analyse_issue():
 
     comments_context = build_comments_context()
 
-    analysis_prompt = f"""
-Tu es un ingénieur logiciel senior.
-
-Tu participes à une discussion GitHub.
-
-Tu dois prendre en compte :
-
-- l'issue initiale
-- le code
-- tous les commentaires
-- toutes les analyses précédentes
-- les remarques humaines
-
-Si une solution a été critiquée,
-tu dois adapter ta proposition.
-
-La dernière proposition prévaut
-sur les précédentes.
-
-Tu ne dois jamais prétendre avoir exécuté
-l'application.
-
-=== ISSUE ===
-
-Titre :
-{ISSUE_TITLE}
-
-Description :
-{ISSUE_BODY}
-
-=== HISTORIQUE ===
-
-{comments_context}
-
-=== CODE ===
-
-{code_context}
-
-Réponds avec :
-
-## Reproductibilité
-
-## Fichiers concernés
-
-## Analyse
-
-## Cause probable
-
-## Correctif proposé
-
-## Complexité
-
-Notée de 1/5 à 5/5
-
-## Plan d'action
-"""
-
+    analysis_prompt = ANALYSIS_PROMPT.format(
+        issue_title=ISSUE_TITLE,
+        issue_body=ISSUE_BODY,
+        comments_context=comments_context,
+        code_context=code_context
+    )
     analysis = call_llm(
         analysis_prompt
     )
@@ -484,7 +245,8 @@ Pour lancer l'implémentation :
 """
 
     publish_comment(
-        comment_body
+        comment_body, 
+        GITHUB_TOKEN
     )
 
 
@@ -504,7 +266,8 @@ def approve_issue():
 L'approbation n'est possible que depuis :
 
 `agent:waiting-approval`
-"""
+""", 
+            GITHUB_TOKEN
         )
 
         return
@@ -520,7 +283,8 @@ L'approbation n'est possible que depuis :
         if not analysis:
 
             publish_comment(
-                "❌ Impossible de trouver une analyse à implémenter."
+                "❌ Impossible de trouver une analyse à implémenter.",
+                GITHUB_TOKEN
             )
 
             return
@@ -609,7 +373,8 @@ Pull Request :
 État actuel :
 
 `agent:waiting-review`
-"""
+""",
+            GITHUB_TOKEN
         )
 
     except Exception as ex:
@@ -621,7 +386,9 @@ Erreur :
 
 ```text
 {str(ex)}
-""")
+""",
+            GITHUB_TOKEN
+        )
         raise
 
 def create_branch():
@@ -702,69 +469,15 @@ def get_latest_agent_analysis():
     return None
 
 
-def checkout_branch(branch_name):
-
-    subprocess.run(
-        [
-            "git",
-            "fetch",
-            "origin",
-            branch_name
-        ],
-        check=True
-    )
-
-    subprocess.run(
-        [
-            "git",
-            "checkout",
-            "-B",
-            branch_name,
-            f"origin/{branch_name}"
-        ],
-        check=True
-    )
-
-    print("=== CURRENT BRANCH ===")
-
-    subprocess.run(
-        ["git", "branch", "--show-current"],
-        check=False
-    )
-
-    print(f"=== CHECKOUT {branch_name} ===")
-
 def generate_implementation(
     analysis,
     code_context
 ):
 
-    prompt = f"""
-Tu es un développeur senior.
-
-Implémente la dernière solution validée.
-
-Réponds UNIQUEMENT avec du JSON.
-
-Format :
-
-{{
-  "files": [
-    {{
-      "path": "style.css",
-      "content": "contenu complet"
-    }}
-  ]
-}}
-
-=== ANALYSE VALIDEE ===
-
-{analysis}
-
-=== CODE ===
-
-{code_context}
-"""
+    prompt = IMPLEMENTATION_PROMPT.format(
+        analysis=analysis,
+        code_context=code_context
+    )
 
     response = call_llm(prompt)
 
@@ -799,68 +512,6 @@ def apply_changes(changes):
 
         print(f"=== WRITE {path} ===")
 
-
-def commit_changes():
-
-    import subprocess
-
-    subprocess.run(
-        [
-            "git",
-            "config",
-            "user.name",
-            "calculator-agent"
-        ],
-        check=True
-    )
-
-    subprocess.run(
-        [
-            "git",
-            "config",
-            "user.email",
-            "agent@github.local"
-        ],
-        check=True
-    )
-
-    subprocess.run(
-        ["git", "add", "."],
-        check=True
-    )
-
-    subprocess.run(
-        [
-            "git",
-            "commit",
-            "-m",
-            f"Agent implementation for issue #{ISSUE_NUMBER}"
-        ],
-        check=True
-    )
-
-
-def push_branch(branch_name):
-
-    result = subprocess.run(
-        [
-            "git",
-            "push",
-            "--set-upstream",
-            "origin",
-            branch_name
-        ],
-        capture_output=True,
-        text=True
-    )
-
-    print("=== PUSH STDOUT ===")
-    print(result.stdout)
-
-    print("=== PUSH STDERR ===")
-    print(result.stderr)
-
-    result.check_returncode()
 
 def create_pull_request(branch_name):
 
@@ -917,41 +568,14 @@ def handle_changes_requested():
 
     review_context = build_review_context()
 
-    implementation_prompt = f"""
-Tu es un développeur senior.
-
-Une Pull Request a reçu une demande de modification.
-
-Tu dois corriger l'implémentation précédente.
-
-=== ANALYSE VALIDEE ===
-
-{analysis}
-
-=== REVIEW ===
-
-{review_context}
-
-=== CODE ===
-
-{code_context}
-
-Réponds UNIQUEMENT avec un JSON valide.
-
-Format :
-
-{{
-  "files": [
-    {{
-      "path": "style.css",
-      "content": "..."
-    }}
-  ]
-}}
-"""
+    implementation_pr_prompt = IMPLEMENTATION_PR_PROMPT.format(
+        analysis=analysis,
+        review_context=review_context,
+        code_context=code_context
+    )
 
     response = call_llm(
-        implementation_prompt
+        implementation_pr_prompt
     )
 
     print("=== IMPLEMENTATION RAW RESPONSE ===")
@@ -965,7 +589,7 @@ Format :
         changes
     )
 
-    commit_changes()
+    commit_changes(ISSUE_NUMBER)
 
     push_branch(
         branch_name
@@ -979,7 +603,8 @@ Format :
         """✅ Demandes de revue prises en compte.
 
 Un nouveau commit a été poussé sur la branche associée à l'issue.
-"""
+""",
+        GITHUB_TOKEN
     )
 
 def build_review_context():
