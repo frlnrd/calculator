@@ -24,10 +24,15 @@ def publish_comment(body, github_token):
     response.raise_for_status()
 
 
-def add_label(label_name, github_token):
+def add_label(
+    label_name, 
+    github_token,
+    repo_name,
+    issue_number,
+):
 
     response = requests.post(
-        f"https://api.github.com/repos/{REPO_NAME}/issues/{ISSUE_NUMBER}/labels",
+        f"https://api.github.com/repos/{repo_name}/issues/{issue_number}/labels",
         headers=get_headers(github_token),
         json={
             "labels": [label_name]
@@ -38,12 +43,17 @@ def add_label(label_name, github_token):
     print(response.status_code)
 
 
-def remove_label(label_name, github_token):
+def remove_label(
+    label_name, 
+    github_token,
+    repo_name,
+    issue_number
+):
 
     response = requests.delete(
         f"https://api.github.com/repos/"
-        f"{REPO_NAME}/issues/"
-        f"{ISSUE_NUMBER}/labels/"
+        f"{repo_name}/issues/"
+        f"{issue_number}/labels/"
         f"{label_name}",
         headers=get_headers(github_token)
     )
@@ -52,10 +62,13 @@ def remove_label(label_name, github_token):
     print(response.status_code)
 
 
-def get_issue_comments(github_token):
-
+def get_issue_comments(
+    repo_name,
+    issue_number,
+    github_token
+):
     response = requests.get(
-        f"https://api.github.com/repos/{REPO_NAME}/issues/{ISSUE_NUMBER}/comments",
+        f"https://api.github.com/repos/{repo_name}/issues/{issue_number}/comments",
         headers=get_headers(github_token),
         timeout=30
     )
@@ -65,10 +78,14 @@ def get_issue_comments(github_token):
     return response.json()
 
 
-def get_current_labels(github_token):
+def get_current_labels(
+    repo_name,
+    issue_number,
+    github_token
+):
 
     response = requests.get(
-        f"https://api.github.com/repos/{REPO_NAME}/issues/{ISSUE_NUMBER}",
+        f"https://api.github.com/repos/{repo_name}/issues/{issue_number}",
         headers=get_headers(github_token),
         timeout=30
     )

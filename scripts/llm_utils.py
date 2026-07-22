@@ -4,13 +4,13 @@ from config import GROK_API_KEY, REPO_NAME
 
 MODEL = "openai/gpt-oss-120b"
 
-def call_llm(prompt):
+def call_llm(prompt, grok_api_key, repo_name):
 
     response = requests.post(
         "https://api.groq.com/openai/v1/chat/completions",
         headers={
-            "Authorization": f"Bearer {GROK_API_KEY}",
-            "HTTP-Referer": f"https://github.com/{REPO_NAME}",
+            "Authorization": f"Bearer {grok_api_key}",
+            "HTTP-Referer": f"https://github.com/{repo_name}",
             "X-Title": "Calculator Agent",
             "Content-Type": "application/json"
         },

@@ -28,6 +28,7 @@ from config import (
     EVENT_NAME,
     COMMENT_BODY,
     GITHUB_TOKEN,
+    GROK_API_KEY,
     ISSUE_TITLE,
     ISSUE_BODY,
     ISSUE_NUMBER,
@@ -176,7 +177,7 @@ def select_files():
         issue_title=ISSUE_TITLE,
         issue_body=ISSUE_BODY
     )
-    response = call_llm(prompt)
+    response = call_llm(prompt, GROK_API_KEY, REPO_NAME)
 
     print("=== SELECTED FILES RAW ===")
     print(response)
@@ -215,7 +216,9 @@ def analyse_issue():
         code_context=code_context
     )
     analysis = call_llm(
-        analysis_prompt
+        analysis_prompt,
+        GROK_API_KEY,
+        REPO_NAME
     )
 
     print("=== ANALYSIS ===")
@@ -479,7 +482,7 @@ def generate_implementation(
         code_context=code_context
     )
 
-    response = call_llm(prompt)
+    response = call_llm(prompt, GROK_API_KEY, REPO_NAME)
 
     try:
         print("=== GENERATED IMPLEMENTATION RAW ===")
@@ -575,7 +578,9 @@ def handle_changes_requested():
     )
 
     response = call_llm(
-        implementation_pr_prompt
+        implementation_pr_prompt,
+        GROK_API_KEY,
+        REPO_NAME
     )
 
     print("=== IMPLEMENTATION RAW RESPONSE ===")
