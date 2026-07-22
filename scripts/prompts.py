@@ -10,10 +10,10 @@ Voici l'arborescence du dépôt.
 === ISSUE ===
 
 Titre :
-{ISSUE_TITLE}
+{issue_title}
 
 Description :
-{ISSUE_BODY}
+{issue_body}
 
 Quels fichiers semblent pertinents ?
 
@@ -49,10 +49,10 @@ l'application.
 === ISSUE ===
 
 Titre :
-{ISSUE_TITLE}
+{issue_title}
 
 Description :
-{ISSUE_BODY}
+{issue_body}
 
 === HISTORIQUE ===
 
