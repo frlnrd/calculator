@@ -81,7 +81,7 @@ def validate_path(path):
 
 def build_comments_context():
 
-    comments = get_issue_comments()
+    comments = get_issue_comments(GITHUB_TOKEN)
 
     context = ""
 
@@ -457,7 +457,7 @@ def create_branch():
 
 def get_latest_agent_analysis():
 
-    comments = get_issue_comments()
+    comments = get_issue_comments(GITHUB_TOKEN)
 
     for comment in reversed(comments):
 
