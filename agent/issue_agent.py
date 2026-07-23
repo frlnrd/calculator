@@ -78,6 +78,7 @@ def main():
         print(REVIEW_BODY)
 
         if REVIEW_STATE == "changes_requested":
+            print(f"=== CHANGES REQUESTED FOR ISSUE {ISSUE_NUMBER} ===")
             handle_changes_requested(ISSUE_NUMBER, ISSUE_TITLE, ISSUE_BODY, REPO_NAME, GITHUB_TOKEN, GROK_API_KEY, REVIEW_STATE, REVIEW_BODY)
     else:
 
