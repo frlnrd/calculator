@@ -2,10 +2,13 @@ const display = document.getElementById('display');
 
 function appendNumber(num) {
     if (display.value === '0' && num !== '.') {
+        // Remplace le zéro initial par le chiffre saisi (sauf point)
         display.value = num;
-    } else if (num === '.' && display.value.includes('.')) {
+    } else if (num === '.' && display.value.endsWith('.')) {
+        // Bloque l’ajout d’un point si le champ se termine déjà par un point
         return;
     } else {
+        // Ajoute le caractère (chiffre ou point) au texte affiché
         display.value += num;
     }
 }
