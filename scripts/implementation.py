@@ -152,7 +152,9 @@ L'approbation n'est possible que depuis :
             issue_number
         )
         assign_pull_request(
-            pr["number"]
+            pr["number"],
+            repo_name,
+            github_token
         )
         pr_url = pr["html_url"]
         set_state(
