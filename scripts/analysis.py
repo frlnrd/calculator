@@ -1,5 +1,6 @@
 from llm_utils import (
-    call_llm
+    call_llm,
+    MODEL
 )
 from file_utils import (
     load_files
@@ -8,16 +9,13 @@ from github_utils import (
     get_issue_comments
 )
 from prompts import (
-    ANALYSIS_PROMPT,
+    ANALYSIS_PROMPT
 )
 from file_utils import (
     select_files
 )
 from state_utils import (
     set_state
-)
-from constants import (
-    MODEL
 )
 from git_utils import (
     publish_comment
