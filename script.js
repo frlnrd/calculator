@@ -3,7 +3,8 @@ const display = document.getElementById('display');
 function appendNumber(num) {
     if (display.value === '0' && num !== '.') {
         display.value = num;
-    } else if (num === '.' && display.value.includes('.')) {
+    } else if (num === '.' && display.value.endsWith('.')) {
+        // Prevent adding a second decimal point directly after another decimal point
         return;
     } else {
         display.value += num;
