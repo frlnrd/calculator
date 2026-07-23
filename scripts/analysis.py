@@ -6,7 +6,8 @@ from file_utils import (
     load_files
 )
 from github_utils import (
-    get_issue_comments
+    get_issue_comments,
+    publish_comment
 )
 from prompts import (
     ANALYSIS_PROMPT
@@ -16,9 +17,6 @@ from file_utils import (
 )
 from state_utils import (
     set_state
-)
-from git_utils import (
-    publish_comment
 )
 
 def build_comments_context(repo_name, issue_number, github_token):
