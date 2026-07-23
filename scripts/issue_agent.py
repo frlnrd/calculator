@@ -1,24 +1,12 @@
-import json
 import requests
 
-from llm_utils import (
-    call_llm,
-    MODEL
-)
 from github_utils import (
-    publish_comment,
-    get_issue_comments,
     get_headers
 )
-from state_utils import (
-    set_state,
-    get_current_state
+from analysis import (
+    analyse_issue
 )
-from git_utils import (
-    checkout_branch,
-    commit_changes,
-    push_branch
-)
+from implementation import approve_issue, handle_changes_requested
 from config import (
     EVENT_NAME,
     COMMENT_BODY,
@@ -31,16 +19,6 @@ from config import (
     REVIEW_STATE,
     REVIEW_BODY,
     PR_NUMBER
-)
-from prompts import (
-    ANALYSIS_PROMPT,
-    IMPLEMENTATION_PROMPT,
-    IMPLEMENTATION_PR_PROMPT
-)
-from file_utils import (
-    load_files,
-    select_files,
-    apply_changes
 )
 
 print("=== EVENT ===")
@@ -57,214 +35,6 @@ if EVENT_NAME in [
     if not ISSUE_NUMBER:
         print("Aucune issue détectée.")
         exit(0)
-
-
-def build_comments_context():
-
-    comments = get_issue_comments(REPO_NAME, ISSUE_NUMBER, GITHUB_TOKEN)
-
-    context = ""
-
-    for comment in comments:
-
-        author = comment["user"]["login"]
-        body = comment["body"]
-
-        context += f"""
-
-=== COMMENTAIRE DE {author} ===
-
-{body}
-"""
-
-    return context
-
-
-def analyse_issue():
-
-    selected_files = select_files(ISSUE_TITLE, ISSUE_BODY, GROK_API_KEY, REPO_NAME)
-
-    print("=== SELECTED FILES ===")
-    print(selected_files)
-
-    code_context = load_files(
-        selected_files
-    )
-
-    comments_context = build_comments_context()
-
-    analysis_prompt = ANALYSIS_PROMPT.format(
-        issue_title=ISSUE_TITLE,
-        issue_body=ISSUE_BODY,
-        comments_context=comments_context,
-        code_context=code_context
-    )
-    analysis = call_llm(
-        analysis_prompt,
-        GROK_API_KEY,
-        REPO_NAME
-    )
-
-    print("=== ANALYSIS ===")
-    print(analysis)
-
-    set_state(
-        "agent:waiting-approval"
-    )
-
-    comment_body = f"""## 🤖 Analyse automatique
-
-**Modèle utilisé :** `{MODEL}`
-
-### Fichiers analysés
-
-{chr(10).join(f"- `{f}`" for f in selected_files)}
-
----
-
-{analysis}
-
----
-
-Pour lancer l'implémentation :
-
-`/approve`
-"""
-
-    publish_comment(
-        comment_body, 
-        GITHUB_TOKEN,
-        REPO_NAME,
-        ISSUE_NUMBER
-    )
-
-
-def approve_issue():
-
-    current_state = get_current_state()
-
-    if current_state != "agent:waiting-approval":
-
-        publish_comment(
-            f"""⚠️ Commande `/approve` ignorée.
-
-État actuel :
-
-`{current_state}`
-
-L'approbation n'est possible que depuis :
-
-`agent:waiting-approval`
-""", 
-            GITHUB_TOKEN,
-            REPO_NAME,
-            ISSUE_NUMBER
-        )
-        return
-    try:
-        #
-        # Analyse validée
-        #
-        analysis = get_latest_agent_analysis()
-
-        if not analysis:
-
-            publish_comment(
-                "❌ Impossible de trouver une analyse à implémenter.",
-                GITHUB_TOKEN,
-                REPO_NAME,
-                ISSUE_NUMBER
-            )
-
-            return
-        #
-        # Branche
-        #
-        branch_name = create_branch()
-        checkout_branch(
-            branch_name
-        )
-        set_state(
-            "agent:implementing"
-        )
-        #
-        # Code source
-        #
-        selected_files = select_files(ISSUE_TITLE, ISSUE_BODY, GROK_API_KEY, REPO_NAME)
-        code_context = load_files(
-            selected_files
-        )
-        #
-        # Génération
-        #
-        changes = generate_implementation(
-            analysis,
-            code_context
-        )
-        #
-        # Ecriture des fichiers
-        #
-        apply_changes(
-            changes
-        )
-        #
-        # Commit
-        #
-        commit_changes(ISSUE_NUMBER)
-        #
-        # Push
-        #
-        push_branch(
-            branch_name
-        )
-        #
-        # Pull Request
-        #
-        pr = create_pull_request(
-            branch_name
-        )
-        assign_pull_request(
-            pr["number"]
-        )
-        pr_url = pr["html_url"]
-        set_state(
-            "agent:waiting-review"
-        )
-        publish_comment(
-            f"""✅ Implémentation terminée.
-
-Branche :
-
-`{branch_name}`
-
-Pull Request :
-
-{pr_url}
-
-État actuel :
-
-`agent:waiting-review`
-""",
-            GITHUB_TOKEN,
-            REPO_NAME,
-            ISSUE_NUMBER
-        )
-
-    except Exception as ex:
-
-        publish_comment(
-            f"""❌ Échec de l'implémentation.
-
-Erreur :
-
-```text
-{str(ex)}
-""",
-            GITHUB_TOKEN,
-            REPO_NAME,
-            ISSUE_NUMBER
-        )
-        raise
 
 
 def create_branch():
@@ -329,44 +99,6 @@ def create_branch():
     return branch_name
 
 
-def get_latest_agent_analysis():
-
-    comments = get_issue_comments(REPO_NAME, ISSUE_NUMBER, GITHUB_TOKEN)
-
-    for comment in reversed(comments):
-
-        body = comment["body"]
-
-        if "## 🤖 Analyse automatique" in body:
-            return body
-
-    return None
-
-
-def generate_implementation(
-    analysis,
-    code_context
-):
-
-    prompt = IMPLEMENTATION_PROMPT.format(
-        analysis=analysis,
-        code_context=code_context
-    )
-
-    response = call_llm(prompt, GROK_API_KEY, REPO_NAME)
-
-    try:
-        print("=== GENERATED IMPLEMENTATION RAW ===")
-        print(response)
-        return json.loads(response)
-    except Exception as ex:
-        print("=== JSON ERROR ===")
-        print(ex)
-        print("=== INVALID JSON ===")
-        print(response)
-        raise
-
-
 def create_pull_request(branch_name):
 
     response = requests.post(
@@ -395,77 +127,6 @@ def assign_pull_request(pr_number):
         }
     )
     response.raise_for_status()
-
-
-def handle_changes_requested():
-
-    current_state = get_current_state()
-
-    if current_state != "agent:waiting-review":
-        return
-
-    branch_name = f"agent/issue-{ISSUE_NUMBER}"
-
-    checkout_branch(
-        branch_name
-    )
-
-    set_state(
-        "agent:implementing"
-    )
-
-    analysis = get_latest_agent_analysis()
-
-    selected_files = select_files(ISSUE_TITLE, ISSUE_BODY, GROK_API_KEY, REPO_NAME)
-
-    code_context = load_files(
-        selected_files
-    )
-
-    review_context = build_review_context()
-
-    implementation_pr_prompt = IMPLEMENTATION_PR_PROMPT.format(
-        analysis=analysis,
-        review_context=review_context,
-        code_context=code_context
-    )
-
-    response = call_llm(
-        implementation_pr_prompt,
-        GROK_API_KEY,
-        REPO_NAME
-    )
-
-    print("=== IMPLEMENTATION RAW RESPONSE ===")
-    print(response)
-
-    changes = json.loads(
-        response
-    )
-
-    apply_changes(
-        changes
-    )
-
-    commit_changes(ISSUE_NUMBER)
-
-    push_branch(
-        branch_name
-    )
-
-    set_state(
-        "agent:waiting-review"
-    )
-
-    publish_comment(
-        """✅ Demandes de revue prises en compte.
-
-Un nouveau commit a été poussé sur la branche associée à l'issue.
-""",
-        GITHUB_TOKEN,
-        REPO_NAME,
-        ISSUE_NUMBER
-    )
 
 
 def build_review_context():
@@ -537,7 +198,7 @@ def main():
     if EVENT_NAME == "issue_comment":
 
         if COMMENT_BODY.strip() == "/approve":
-            approve_issue()
+            approve_issue(GITHUB_TOKEN, REPO_NAME, ISSUE_NUMBER, ISSUE_TITLE, ISSUE_BODY, GROK_API_KEY)
         else:
             analyse_issue()
 
@@ -546,7 +207,7 @@ def main():
         "workflow_dispatch"
     ]:
 
-        analyse_issue()
+        analyse_issue(ISSUE_TITLE, ISSUE_BODY, REPO_NAME, ISSUE_NUMBER, GITHUB_TOKEN, GROK_API_KEY)
     elif EVENT_NAME == "pull_request_review":
 
         ISSUE_NUMBER = get_issue_number_from_pr()
@@ -561,7 +222,7 @@ def main():
         print(REVIEW_BODY)
 
         if REVIEW_STATE == "changes_requested":
-            handle_changes_requested()
+            handle_changes_requested(ISSUE_NUMBER, ISSUE_TITLE, ISSUE_BODY, REPO_NAME, GITHUB_TOKEN, GROK_API_KEY)
     else:
 
         print(
