@@ -88,6 +88,14 @@ Implémente la dernière solution validée.
 
 Réponds UNIQUEMENT avec du JSON.
 
+IMPORTANT
+
+Ne modifie que les fichiers strictement nécessaires.
+
+Ne réécris jamais un fichier qui ne nécessite pas de modification.
+
+Ne renvoie que les fichiers réellement modifiés.
+
 Format :
 
 {{
@@ -114,6 +122,14 @@ Tu es un développeur senior.
 Une Pull Request a reçu une demande de modification.
 
 Tu dois corriger l'implémentation précédente.
+
+IMPORTANT
+
+Ne modifie que les fichiers strictement nécessaires.
+
+Ne réécris jamais un fichier qui ne nécessite pas de modification.
+
+Ne renvoie que les fichiers réellement modifiés.
 
 === ANALYSE VALIDEE ===
 

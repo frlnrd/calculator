@@ -118,6 +118,7 @@ def select_files(issue_title, issue_body, grok_api_key, repo_name):
         ]
         print("=== SELECTED FILES FILTERED ===")
         print(selected_files)
+        selected_files = selected_files[:3]
         return selected_files
     except Exception:
         return []

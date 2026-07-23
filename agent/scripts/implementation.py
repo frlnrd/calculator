@@ -248,9 +248,41 @@ def handle_changes_requested(issue_number, issue_title, issue_body, repo_name, g
     print("=== IMPLEMENTATION RAW RESPONSE ===")
     print(response)
 
-    changes = json.loads(
-        response
-    )
+    response = response.strip()
+
+    if not response.endswith("}"):
+
+        publish_comment(
+            repo_name,
+            issue_number,
+            github_token,
+            """❌ Réponse du modèle tronquée.
+
+La réponse ne se termine pas par une accolade fermante.
+"""
+        )
+
+        return
+
+    try:
+
+        changes = json.loads(
+            response
+        )
+
+    except Exception as ex:
+
+        print("=== INVALID JSON ===")
+        print(response)
+
+        publish_comment(
+            repo_name,
+            issue_number,
+            github_token,
+            f"❌ JSON invalide généré par le modèle : {str(ex)}"
+        )
+
+        return
 
     apply_changes(
         changes
