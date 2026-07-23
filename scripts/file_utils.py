@@ -130,6 +130,10 @@ def apply_changes(changes):
     for file in files:
 
         path = file["path"]
+        if path.endswith(".pyc"):
+            raise Exception(
+                f"Modification interdite : {path}"
+            )
         validate_path(path)
         content = file["content"]
 
