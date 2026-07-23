@@ -12,9 +12,9 @@ STATES = [
     "agent:completed"
 ]
 
-def get_current_state():
+def get_current_state(repo_name, issue_number, github_token):
 
-    labels = get_current_labels(REPO_NAME, ISSUE_NUMBER, GITHUB_TOKEN)
+    labels = get_current_labels(repo_name, issue_number, github_token)
 
     for state in STATES:
 
@@ -24,9 +24,9 @@ def get_current_state():
     return None
 
 
-def set_state(new_state):
+def set_state(new_state, repo_name, issue_number, github_token):
 
-    current_labels = get_current_labels(REPO_NAME, ISSUE_NUMBER, GITHUB_TOKEN)
+    current_labels = get_current_labels(repo_name, issue_number, github_token)
 
     if new_state in current_labels:
 
@@ -40,9 +40,9 @@ def set_state(new_state):
 
         if state in current_labels:
 
-            remove_label(state, GITHUB_TOKEN, REPO_NAME, ISSUE_NUMBER)
+            remove_label(state, github_token, repo_name, issue_number)
 
-    add_label(new_state, GITHUB_TOKEN, REPO_NAME, ISSUE_NUMBER)
+    add_label(new_state, github_token, repo_name, issue_number)
 
     print(
         f"Changement d'état : {new_state}"

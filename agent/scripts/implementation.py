@@ -64,7 +64,7 @@ def generate_implementation(
 
 def approve_issue(github_token, repo_name, issue_number, issue_title, issue_body, grok_api_key):
 
-    current_state = get_current_state()
+    current_state = get_current_state(repo_name, issue_number, github_token)
 
     if current_state != "agent:waiting-approval":
 
@@ -108,7 +108,10 @@ L'approbation n'est possible que depuis :
             branch_name
         )
         set_state(
-            "agent:implementing"
+            "agent:implementing",
+            repo_name,
+            issue_number,
+            github_token
         )
         #
         # Code source
@@ -158,7 +161,10 @@ L'approbation n'est possible que depuis :
         )
         pr_url = pr["html_url"]
         set_state(
-            "agent:waiting-review"
+            "agent:waiting-review",
+            repo_name,
+            issue_number,
+            github_token
         )
         publish_comment(
             f"""✅ Implémentation terminée.
@@ -199,7 +205,7 @@ Erreur :
 
 def handle_changes_requested(issue_number, issue_title, issue_body, repo_name, github_token, grok_api_key, review_state, review_body):
 
-    current_state = get_current_state()
+    current_state = get_current_state(repo_name, issue_number, github_token)
 
     if current_state != "agent:waiting-review":
         return
@@ -211,7 +217,10 @@ def handle_changes_requested(issue_number, issue_title, issue_body, repo_name, g
     )
 
     set_state(
-        "agent:implementing"
+        "agent:implementing",
+        repo_name,
+        issue_number,
+        github_token
     )
 
     analysis = get_latest_agent_analysis(repo_name, issue_number, github_token)
@@ -254,7 +263,10 @@ def handle_changes_requested(issue_number, issue_title, issue_body, repo_name, g
     )
 
     set_state(
-        "agent:waiting-review"
+        "agent:waiting-review",
+        repo_name,
+        issue_number,
+        github_token
     )
 
     publish_comment(

@@ -69,7 +69,10 @@ def analyse_issue(issue_title, issue_body, repo_name, issue_number, github_token
     print(analysis)
 
     set_state(
-        "agent:waiting-approval"
+        "agent:waiting-approval",
+        repo_name,
+        issue_number,
+        github_token
     )
 
     comment_body = f"""## 🤖 Analyse automatique
