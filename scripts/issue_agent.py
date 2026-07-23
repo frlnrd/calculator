@@ -1,5 +1,4 @@
 import json
-import os
 import requests
 
 from llm_utils import (
@@ -20,10 +19,6 @@ from git_utils import (
     commit_changes,
     push_branch
 )
-from constants import (
-    PROTECTED_PATHS,
-    EXCLUDED_DIRS
-)
 from config import (
     EVENT_NAME,
     COMMENT_BODY,
@@ -38,7 +33,6 @@ from config import (
     PR_NUMBER
 )
 from prompts import (
-    FILE_SELECTION_PROMPT,
     ANALYSIS_PROMPT,
     IMPLEMENTATION_PROMPT,
     IMPLEMENTATION_PR_PROMPT

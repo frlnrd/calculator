@@ -3,12 +3,12 @@ import json
 from constants import (
     EXCLUDED_DIRS,
     PROTECTED_PATHS,
-    FILE_SELECTION_PROMPT,
     ISSUE_TITLE,
     ISSUE_BODY,
     GROK_API_KEY,
     REPO_NAME
 )
+from prompts import FILE_SELECTION_PROMPT
 from llm_utils import call_llm
 
 def validate_path(path):
