@@ -205,8 +205,10 @@ Erreur :
 
 def handle_changes_requested(issue_number, issue_title, issue_body, repo_name, github_token, grok_api_key, review_state, review_body):
 
+    print("STEP 1")
     current_state = get_current_state(repo_name, issue_number, github_token)
 
+    print("STEP 2")
     if current_state != "agent:waiting-review":
         return
 
@@ -216,6 +218,7 @@ def handle_changes_requested(issue_number, issue_title, issue_body, repo_name, g
         branch_name
     )
 
+    print("STEP 3")
     set_state(
         "agent:implementing",
         repo_name,
@@ -223,14 +226,18 @@ def handle_changes_requested(issue_number, issue_title, issue_body, repo_name, g
         github_token
     )
 
+    print("STEP 4")
     analysis = get_latest_agent_analysis(repo_name, issue_number, github_token)
 
+    print("STEP 5")
     selected_files = select_files(issue_title, issue_body, grok_api_key, repo_name)
 
+    print("STEP 6")
     code_context = load_files(
         selected_files
     )
 
+    print("STEP 7")
     review_context = build_review_context(review_state, review_body)
 
     implementation_pr_prompt = IMPLEMENTATION_PR_PROMPT.format(
@@ -239,12 +246,14 @@ def handle_changes_requested(issue_number, issue_title, issue_body, repo_name, g
         code_context=code_context
     )
 
+    print("STEP 8")
     response = call_llm(
         implementation_pr_prompt,
         grok_api_key,
         repo_name
     )
 
+    print("STEP 9")
     print("=== IMPLEMENTATION RAW RESPONSE ===")
     print(response)
 
