@@ -396,7 +396,7 @@ Erreur :
 
 def create_branch():
 
-    headers = get_headers()
+    headers = get_headers(GITHUB_TOKEN)
 
     repo_response = requests.get(
         f"https://api.github.com/repos/{REPO_NAME}",
@@ -520,7 +520,7 @@ def create_pull_request(branch_name):
 
     response = requests.post(
         f"https://api.github.com/repos/{REPO_NAME}/pulls",
-        headers=get_headers(),
+        headers=get_headers(GITHUB_TOKEN),
         json={
             "title": f"Fix issue #{ISSUE_NUMBER}",
             "head": branch_name,
@@ -535,7 +535,7 @@ def assign_pull_request(pr_number):
 
     response = requests.post(
         f"https://api.github.com/repos/{REPO_NAME}/issues/{pr_number}/assignees",
-        headers=get_headers(),
+        headers=get_headers(GITHUB_TOKEN),
         json={
             "assignees": [
                 "frlnrd"
@@ -633,7 +633,7 @@ def get_issue_number_from_pr():
 
     response = requests.get(
         f"https://api.github.com/repos/{REPO_NAME}/pulls/{PR_NUMBER}",
-        headers=get_headers(),
+        headers=get_headers(GITHUB_TOKEN),
         timeout=30
     )
 

@@ -3,6 +3,7 @@ from github_utils import (
     add_label, 
     remove_label
 )
+from config import REPO_NAME, ISSUE_NUMBER, GITHUB_TOKEN
 
 STATES = [
     "agent:waiting-approval",
@@ -13,7 +14,7 @@ STATES = [
 
 def get_current_state():
 
-    labels = get_current_labels()
+    labels = get_current_labels(REPO_NAME, ISSUE_NUMBER, GITHUB_TOKEN)
 
     for state in STATES:
 
@@ -25,7 +26,7 @@ def get_current_state():
 
 def set_state(new_state):
 
-    current_labels = get_current_labels()
+    current_labels = get_current_labels(REPO_NAME, ISSUE_NUMBER, GITHUB_TOKEN)
 
     if new_state in current_labels:
 
@@ -39,9 +40,9 @@ def set_state(new_state):
 
         if state in current_labels:
 
-            remove_label(state)
+            remove_label(state, GITHUB_TOKEN, REPO_NAME, ISSUE_NUMBER)
 
-    add_label(new_state)
+    add_label(new_state, GITHUB_TOKEN, REPO_NAME, ISSUE_NUMBER)
 
     print(
         f"Changement d'état : {new_state}"
