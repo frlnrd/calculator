@@ -54,4 +54,4 @@ jobs:
           REVIEW_BODY: ${{ github.event.review.body }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
 
-        run: python scripts/issue_agent.py
+        run: python agent/issue_agent.py

@@ -1,16 +1,14 @@
-import requests
-
-from github_utils import (
+from scripts.github_utils import (
     get_headers
 )
-from analysis import (
+from scripts.analysis import (
     analyse_issue
 )
-from implementation import (
+from scripts.implementation import (
     approve_issue, 
     handle_changes_requested
 )
-from config import (
+from scripts.config import (
     EVENT_NAME,
     COMMENT_BODY,
     GITHUB_TOKEN,
@@ -23,7 +21,7 @@ from config import (
     REVIEW_BODY,
     PR_NUMBER
 )
-from github_utils import (
+from scripts.github_utils import (
     resolve_issue_number,
     get_issue_number_from_pr
 )

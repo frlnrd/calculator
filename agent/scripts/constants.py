@@ -1,7 +1,7 @@
 PROTECTED_PATHS = [
     ".git/",
     ".github/",
-    "scripts/"
+    "agent/"
 ]
 EXCLUDED_DIRS = {
     ".git",
@@ -10,5 +10,5 @@ EXCLUDED_DIRS = {
     "__pycache__",
     ".venv",
     "venv",
-    "scripts"
+    "agent"
 }

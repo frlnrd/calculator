@@ -1,9 +1,9 @@
-from github_utils import (
+from scripts.github_utils import (
     get_current_labels, 
     add_label, 
     remove_label
 )
-from config import REPO_NAME, ISSUE_NUMBER, GITHUB_TOKEN
+from scripts.config import REPO_NAME, ISSUE_NUMBER, GITHUB_TOKEN
 
 STATES = [
     "agent:waiting-approval",

@@ -1,11 +1,11 @@
 import os
 import json
-from constants import (
+from scripts.constants import (
     EXCLUDED_DIRS,
     PROTECTED_PATHS,
 )
-from prompts import FILE_SELECTION_PROMPT
-from llm_utils import call_llm
+from scripts.prompts import FILE_SELECTION_PROMPT
+from scripts.llm_utils import call_llm
 
 def validate_path(path):
 

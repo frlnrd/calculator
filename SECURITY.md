@@ -44,7 +44,7 @@ The following paths are protected and cannot be modified by the agent:
 
 - `.git/`
 - `.github/`
-- `scripts/`
+- `agent/`
 
 The agent is also prevented from:
 

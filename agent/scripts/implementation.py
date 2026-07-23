@@ -1,36 +1,36 @@
 import json
 
-from prompts import (
+from scripts.prompts import (
     IMPLEMENTATION_PROMPT,
     IMPLEMENTATION_PR_PROMPT
 )
-from config import (
+from scripts.config import (
     REPO_NAME,
     GROK_API_KEY
 )
-from llm_utils import (
+from scripts.llm_utils import (
     call_llm
 )
-from analysis import build_review_context
-from state_utils import (
+from scripts.analysis import build_review_context
+from scripts.state_utils import (
     set_state,
     get_current_state
 )
-from git_utils import (
+from scripts.git_utils import (
     checkout_branch,
     commit_changes,
     push_branch,
 )
-from github_utils import (
+from scripts.github_utils import (
     publish_comment,
     create_pull_request,
     assign_pull_request,
     create_branch
 )
-from analysis import (
+from scripts.analysis import (
     get_latest_agent_analysis
 )
-from file_utils import (
+from scripts.file_utils import (
     load_files,
     apply_changes,
     select_files

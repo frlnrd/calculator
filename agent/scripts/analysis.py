@@ -1,21 +1,21 @@
-from llm_utils import (
+from scripts.llm_utils import (
     call_llm,
     MODEL
 )
-from file_utils import (
+from scripts.file_utils import (
     load_files
 )
-from github_utils import (
+from scripts.github_utils import (
     get_issue_comments,
     publish_comment
 )
-from prompts import (
+from scripts.prompts import (
     ANALYSIS_PROMPT
 )
-from file_utils import (
+from scripts.file_utils import (
     select_files
 )
-from state_utils import (
+from scripts.state_utils import (
     set_state
 )
 
