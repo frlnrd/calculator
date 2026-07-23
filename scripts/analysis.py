@@ -111,3 +111,23 @@ def get_latest_agent_analysis(repo_name, issue_number, github_token):
             return body
 
     return None
+
+
+def build_review_context(review_state, review_body):
+
+    if not review_body:
+        return ""
+
+    return f"""
+=== REVIEW CHANGES REQUESTED ===
+
+Etat :
+
+{review_state}
+
+Commentaire du reviewer :
+
+{review_body}
+"""
+
+

@@ -129,24 +129,6 @@ def assign_pull_request(pr_number):
     response.raise_for_status()
 
 
-def build_review_context():
-
-    if not REVIEW_BODY:
-        return ""
-
-    return f"""
-=== REVIEW CHANGES REQUESTED ===
-
-Etat :
-
-{REVIEW_STATE}
-
-Commentaire du reviewer :
-
-{REVIEW_BODY}
-"""
-
-
 def get_issue_number_from_pr():
 
     response = requests.get(
@@ -222,7 +204,7 @@ def main():
         print(REVIEW_BODY)
 
         if REVIEW_STATE == "changes_requested":
-            handle_changes_requested(ISSUE_NUMBER, ISSUE_TITLE, ISSUE_BODY, REPO_NAME, GITHUB_TOKEN, GROK_API_KEY)
+            handle_changes_requested(ISSUE_NUMBER, ISSUE_TITLE, ISSUE_BODY, REPO_NAME, GITHUB_TOKEN, GROK_API_KEY, REVIEW_STATE, REVIEW_BODY)
     else:
 
         print(

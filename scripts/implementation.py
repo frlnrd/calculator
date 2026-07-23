@@ -11,7 +11,7 @@ from config import (
 from llm_utils import (
     call_llm
 )
-from scripts.issue_agent import build_review_context
+from analysis import build_review_context
 from state_utils import (
     set_state,
     get_current_state
@@ -190,7 +190,7 @@ Erreur :
         raise
 
 
-def handle_changes_requested(issue_number, issue_title, issue_body, repo_name, github_token, grok_api_key):
+def handle_changes_requested(issue_number, issue_title, issue_body, repo_name, github_token, grok_api_key, review_state, review_body):
 
     current_state = get_current_state()
 
@@ -215,7 +215,7 @@ def handle_changes_requested(issue_number, issue_title, issue_body, repo_name, g
         selected_files
     )
 
-    review_context = build_review_context()
+    review_context = build_review_context(review_state, review_body)
 
     implementation_pr_prompt = IMPLEMENTATION_PR_PROMPT.format(
         analysis=analysis,
@@ -225,8 +225,8 @@ def handle_changes_requested(issue_number, issue_title, issue_body, repo_name, g
 
     response = call_llm(
         implementation_pr_prompt,
-        GROK_API_KEY,
-        REPO_NAME
+        grok_api_key,
+        repo_name
     )
 
     print("=== IMPLEMENTATION RAW RESPONSE ===")
