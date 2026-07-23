@@ -1,0 +1,148 @@
+import os
+import json
+from constants import (
+    EXCLUDED_DIRS,
+    PROTECTED_PATHS,
+    FILE_SELECTION_PROMPT,
+    ISSUE_TITLE,
+    ISSUE_BODY,
+    GROK_API_KEY,
+    REPO_NAME
+)
+from llm_utils import call_llm
+
+def validate_path(path):
+
+    if path.startswith("/"):
+        raise Exception(
+            f"Chemin absolu interdit : {path}"
+        )
+
+    if ".." in path:
+        raise Exception(
+            f"Path traversal interdit : {path}"
+        )
+
+    for protected_path in PROTECTED_PATHS:
+
+        if path.startswith(protected_path):
+
+            raise Exception(
+                f"Modification interdite : {path}"
+            )
+
+
+def build_repository_tree():
+
+    paths = []
+
+    for root, dirs, files in os.walk("."):
+
+        dirs[:] = [
+            d for d in dirs
+            if d not in EXCLUDED_DIRS
+        ]
+
+        for file in files:
+
+            path = os.path.relpath(
+                os.path.join(root, file),
+                "."
+            )
+
+            paths.append(path)
+
+    return "\n".join(sorted(paths))
+
+
+def load_files(file_list):
+
+    content = ""
+
+    for file_path in file_list:
+
+        file_path = file_path.strip()
+
+        if not file_path:
+            continue
+
+        if not os.path.exists(file_path):
+            continue
+
+        try:
+
+            with open(
+                file_path,
+                "r",
+                encoding="utf-8",
+                errors="ignore"
+            ) as f:
+
+                file_content = f.read()
+
+            content += (
+                f"\n\n=== FICHIER : {file_path} ===\n\n"
+            )
+
+            content += file_content[:10000]
+
+        except Exception as ex:
+
+            print(
+                f"Erreur lecture {file_path}: {ex}"
+            )
+
+    return content
+
+
+def select_files():
+
+    repository_tree = build_repository_tree()
+
+    print("=== REPOSITORY TREE ===")
+    print(repository_tree)
+
+    prompt = FILE_SELECTION_PROMPT.format(
+        repository_tree=repository_tree,
+        issue_title=ISSUE_TITLE,
+        issue_body=ISSUE_BODY
+    )
+    response = call_llm(prompt, GROK_API_KEY, REPO_NAME)
+
+    print("=== SELECTED FILES RAW ===")
+    print(response)
+
+    try:
+        selected_files = json.loads(response)
+        selected_files = [
+            f.strip()
+            for f in selected_files
+            if isinstance(f, str)
+            and f.strip()
+        ]
+        print("=== SELECTED FILES FILTERED ===")
+        print(selected_files)
+        return selected_files
+    except Exception:
+        return []
+
+
+def apply_changes(changes):
+
+    files = changes.get("files", [])
+
+    for file in files:
+
+        path = file["path"]
+        validate_path(path)
+        content = file["content"]
+
+        with open(
+            path,
+            "w",
+            encoding="utf-8"
+        ) as f:
+
+            f.write(content)
+
+        print(f"=== WRITE {path} ===")

@@ -43,6 +43,11 @@ from prompts import (
     IMPLEMENTATION_PROMPT,
     IMPLEMENTATION_PR_PROMPT
 )
+from file_utils import (
+    load_files,
+    select_files,
+    apply_changes
+)
 
 print("=== EVENT ===")
 print(EVENT_NAME)
@@ -59,26 +64,6 @@ if EVENT_NAME in [
         print("Aucune issue détectée.")
         exit(0)
 
-
-def validate_path(path):
-
-    if path.startswith("/"):
-        raise Exception(
-            f"Chemin absolu interdit : {path}"
-        )
-
-    if ".." in path:
-        raise Exception(
-            f"Path traversal interdit : {path}"
-        )
-
-    for protected_path in PROTECTED_PATHS:
-
-        if path.startswith(protected_path):
-
-            raise Exception(
-                f"Modification interdite : {path}"
-            )
 
 def build_comments_context():
 
@@ -100,101 +85,6 @@ def build_comments_context():
 
     return context
 
-
-def build_repository_tree():
-
-    paths = []
-
-    for root, dirs, files in os.walk("."):
-
-        dirs[:] = [
-            d for d in dirs
-            if d not in EXCLUDED_DIRS
-        ]
-
-        for file in files:
-
-            path = os.path.relpath(
-                os.path.join(root, file),
-                "."
-            )
-
-            paths.append(path)
-
-    return "\n".join(sorted(paths))
-
-
-def load_files(file_list):
-
-    content = ""
-
-    for file_path in file_list:
-
-        file_path = file_path.strip()
-
-        if not file_path:
-            continue
-
-        if not os.path.exists(file_path):
-            continue
-
-        try:
-
-            with open(
-                file_path,
-                "r",
-                encoding="utf-8",
-                errors="ignore"
-            ) as f:
-
-                file_content = f.read()
-
-            content += (
-                f"\n\n=== FICHIER : {file_path} ===\n\n"
-            )
-
-            content += file_content[:10000]
-
-        except Exception as ex:
-
-            print(
-                f"Erreur lecture {file_path}: {ex}"
-            )
-
-    return content
-
-
-
-def select_files():
-
-    repository_tree = build_repository_tree()
-
-    print("=== REPOSITORY TREE ===")
-    print(repository_tree)
-
-    prompt = FILE_SELECTION_PROMPT.format(
-        repository_tree=repository_tree,
-        issue_title=ISSUE_TITLE,
-        issue_body=ISSUE_BODY
-    )
-    response = call_llm(prompt, GROK_API_KEY, REPO_NAME)
-
-    print("=== SELECTED FILES RAW ===")
-    print(response)
-
-    try:
-        selected_files = json.loads(response)
-        selected_files = [
-            f.strip()
-            for f in selected_files
-            if isinstance(f, str)
-            and f.strip()
-        ]
-        print("=== SELECTED FILES FILTERED ===")
-        print(selected_files)
-        return selected_files
-    except Exception:
-        return []
 
 def analyse_issue():
 
@@ -276,15 +166,11 @@ L'approbation n'est possible que depuis :
             REPO_NAME,
             ISSUE_NUMBER
         )
-
         return
-
     try:
-
         #
         # Analyse validée
         #
-
         analysis = get_latest_agent_analysis()
 
         if not analysis:
@@ -297,66 +183,49 @@ L'approbation n'est possible que depuis :
             )
 
             return
-
         #
         # Branche
         #
-
         branch_name = create_branch()
-
         checkout_branch(
             branch_name
         )
-
         set_state(
             "agent:implementing"
         )
-
         #
         # Code source
         #
-
         selected_files = select_files()
-
         code_context = load_files(
             selected_files
         )
-
         #
         # Génération
         #
-
         changes = generate_implementation(
             analysis,
             code_context
         )
-
         #
         # Ecriture des fichiers
         #
-
         apply_changes(
             changes
         )
-
         #
         # Commit
         #
-
-        commit_changes()
-
+        commit_changes(ISSUE_NUMBER)
         #
         # Push
         #
-
         push_branch(
             branch_name
         )
-
         #
         # Pull Request
         #
-
         pr = create_pull_request(
             branch_name
         )
@@ -367,7 +236,6 @@ L'approbation n'est possible que depuis :
         set_state(
             "agent:waiting-review"
         )
-
         publish_comment(
             f"""✅ Implémentation terminée.
 
@@ -403,6 +271,7 @@ Erreur :
             ISSUE_NUMBER
         )
         raise
+
 
 def create_branch():
 
@@ -449,12 +318,10 @@ def create_branch():
         },
         timeout=30
     )
-
     #
     # 201 = créée
     # 422 = existe déjà
     #
-
     if create_response.status_code not in [
         201,
         422
@@ -505,26 +372,6 @@ def generate_implementation(
         print(response)
         raise
 
-def apply_changes(changes):
-
-    files = changes.get("files", [])
-
-    for file in files:
-
-        path = file["path"]
-        validate_path(path)
-        content = file["content"]
-
-        with open(
-            path,
-            "w",
-            encoding="utf-8"
-        ) as f:
-
-            f.write(content)
-
-        print(f"=== WRITE {path} ===")
-
 
 def create_pull_request(branch_name):
 
@@ -541,6 +388,7 @@ def create_pull_request(branch_name):
     response.raise_for_status()
     return response.json()
 
+
 def assign_pull_request(pr_number):
 
     response = requests.post(
@@ -553,6 +401,7 @@ def assign_pull_request(pr_number):
         }
     )
     response.raise_for_status()
+
 
 def handle_changes_requested():
 
@@ -624,6 +473,7 @@ Un nouveau commit a été poussé sur la branche associée à l'issue.
         ISSUE_NUMBER
     )
 
+
 def build_review_context():
 
     if not REVIEW_BODY:
@@ -640,6 +490,7 @@ Commentaire du reviewer :
 
 {REVIEW_BODY}
 """
+
 
 def get_issue_number_from_pr():
 
@@ -668,6 +519,7 @@ def get_issue_number_from_pr():
         ""
     )
 
+
 def resolve_issue_number():
 
     if ISSUE_NUMBER:
@@ -677,6 +529,7 @@ def resolve_issue_number():
         return get_issue_number_from_pr()
 
     return ISSUE_NUMBER
+
 
 def main():
 
