@@ -212,8 +212,10 @@ def handle_changes_requested(issue_number, issue_title, issue_body, repo_name, g
     if current_state != "agent:waiting-review":
         return
 
+    print("STEP 2-0")
     branch_name = f"agent/issue-{issue_number}"
 
+    print("STEP 2-1")
     checkout_branch(
         branch_name
     )
