@@ -95,7 +95,7 @@ def load_files(file_list):
     return content
 
 
-def select_files():
+def select_files(issue_title, issue_body):
 
     repository_tree = build_repository_tree()
 
@@ -104,8 +104,8 @@ def select_files():
 
     prompt = FILE_SELECTION_PROMPT.format(
         repository_tree=repository_tree,
-        issue_title=ISSUE_TITLE,
-        issue_body=ISSUE_BODY
+        issue_title=issue_title,
+        issue_body=issue_body
     )
     response = call_llm(prompt, GROK_API_KEY, REPO_NAME)
 
