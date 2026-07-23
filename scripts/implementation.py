@@ -17,15 +17,15 @@ from state_utils import (
     get_current_state
 )
 from git_utils import (
-    publish_comment,
+    checkout_branch,
+    commit_changes,
+    push_branch,
     create_branch
 )
 from github_utils import (
+    publish_comment,
     create_pull_request,
-    assign_pull_request,
-    checkout_branch,
-    commit_changes,
-    push_branch
+    assign_pull_request
 )
 from analysis import (
     get_latest_agent_analysis
