@@ -103,7 +103,7 @@ L'approbation n'est possible que depuis :
         #
         # Branche
         #
-        branch_name = create_branch()
+        branch_name = create_branch(github_token, repo_name, issue_number)
         checkout_branch(
             branch_name
         )
