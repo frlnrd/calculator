@@ -13,31 +13,32 @@
                 <input type="text" id="display" readonly>
             </div>
             <div class="buttons">
-                <!-- Bouton C → classe spécifique pour la couleur rouge -->
+                <!-- Ligne 1 -->
                 <button class="btn clear-btn" onclick="clearDisplay()">C</button>
-                <!-- Bouton DEL → couleur orange -->
                 <button class="btn del-btn" onclick="deleteLast()">DEL</button>
-                <!-- Division → affichage ':' mais opérateur '/' -->
                 <button class="btn function-btn" onclick="appendOperator('/')">÷</button>
-                <!-- Multiplication → affichage 'x' mais opérateur '*' -->
                 <button class="btn function-btn" onclick="appendOperator('*')">x</button>
 
+                <!-- Ligne 2 -->
                 <button class="btn" onclick="appendNumber('7')">7</button>
                 <button class="btn" onclick="appendNumber('8')">8</button>
                 <button class="btn" onclick="appendNumber('9')">9</button>
                 <button class="btn function-btn" onclick="appendOperator('-')">-</button>
 
+                <!-- Ligne 3 -->
                 <button class="btn" onclick="appendNumber('4')">4</button>
                 <button class="btn" onclick="appendNumber('5')">5</button>
                 <button class="btn" onclick="appendNumber('6')">6</button>
                 <button class="btn function-btn" onclick="appendOperator('+')">+</button>
 
+                <!-- Ligne 4 -->
                 <button class="btn" onclick="appendNumber('1')">1</button>
                 <button class="btn" onclick="appendNumber('2')">2</button>
                 <button class="btn" onclick="appendNumber('3')">3</button>
                 <button class="btn" onclick="appendNumber('.')">.</button>
 
-                <button class="btn zero" onclick="appendNumber('0')">0</button>
+                <!-- Ligne 5 -->
+                <button class="btn" onclick="appendNumber('0')">0</button>
                 <button class="btn equals-btn" onclick="calculate()">=</button>
             </div>
         </div>
