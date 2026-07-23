@@ -20,12 +20,12 @@ from git_utils import (
     checkout_branch,
     commit_changes,
     push_branch,
-    create_branch
 )
 from github_utils import (
     publish_comment,
     create_pull_request,
-    assign_pull_request
+    assign_pull_request,
+    create_branch
 )
 from analysis import (
     get_latest_agent_analysis
