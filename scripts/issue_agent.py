@@ -249,7 +249,9 @@ Pour lancer l'implémentation :
 
     publish_comment(
         comment_body, 
-        GITHUB_TOKEN
+        GITHUB_TOKEN,
+        REPO_NAME,
+        ISSUE_NUMBER
     )
 
 
@@ -270,7 +272,9 @@ L'approbation n'est possible que depuis :
 
 `agent:waiting-approval`
 """, 
-            GITHUB_TOKEN
+            GITHUB_TOKEN,
+            REPO_NAME,
+            ISSUE_NUMBER
         )
 
         return
@@ -287,7 +291,9 @@ L'approbation n'est possible que depuis :
 
             publish_comment(
                 "❌ Impossible de trouver une analyse à implémenter.",
-                GITHUB_TOKEN
+                GITHUB_TOKEN,
+                REPO_NAME,
+                ISSUE_NUMBER
             )
 
             return
@@ -377,7 +383,9 @@ Pull Request :
 
 `agent:waiting-review`
 """,
-            GITHUB_TOKEN
+            GITHUB_TOKEN,
+            REPO_NAME,
+            ISSUE_NUMBER
         )
 
     except Exception as ex:
@@ -390,7 +398,9 @@ Erreur :
 ```text
 {str(ex)}
 """,
-            GITHUB_TOKEN
+            GITHUB_TOKEN,
+            REPO_NAME,
+            ISSUE_NUMBER
         )
         raise
 
@@ -609,7 +619,9 @@ def handle_changes_requested():
 
 Un nouveau commit a été poussé sur la branche associée à l'issue.
 """,
-        GITHUB_TOKEN
+        GITHUB_TOKEN,
+        REPO_NAME,
+        ISSUE_NUMBER
     )
 
 def build_review_context():

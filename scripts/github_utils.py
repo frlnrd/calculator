@@ -7,10 +7,10 @@ def get_headers(github_token):
     }
 
 
-def publish_comment(body, github_token):
+def publish_comment(body, github_token, repo_name, issue_number):
 
     response = requests.post(
-        f"https://api.github.com/repos/{REPO_NAME}/issues/{ISSUE_NUMBER}/comments",
+        f"https://api.github.com/repos/{repo_name}/issues/{issue_number}/comments",
         headers=get_headers(github_token),
         json={
             "body": body
