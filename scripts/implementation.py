@@ -16,9 +16,11 @@ from state_utils import (
     set_state,
     get_current_state
 )
-from github_utils import (
+from git_utils import (
     publish_comment,
-    create_branch,
+    create_branch
+)
+from github_utils import (
     create_pull_request,
     assign_pull_request,
     checkout_branch,
