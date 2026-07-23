@@ -3,10 +3,6 @@ import json
 from constants import (
     EXCLUDED_DIRS,
     PROTECTED_PATHS,
-    ISSUE_TITLE,
-    ISSUE_BODY,
-    GROK_API_KEY,
-    REPO_NAME
 )
 from prompts import FILE_SELECTION_PROMPT
 from llm_utils import call_llm
@@ -95,7 +91,7 @@ def load_files(file_list):
     return content
 
 
-def select_files(issue_title, issue_body):
+def select_files(issue_title, issue_body, grok_api_key, repo_name):
 
     repository_tree = build_repository_tree()
 
@@ -107,7 +103,7 @@ def select_files(issue_title, issue_body):
         issue_title=issue_title,
         issue_body=issue_body
     )
-    response = call_llm(prompt, GROK_API_KEY, REPO_NAME)
+    response = call_llm(prompt, grok_api_key, repo_name)
 
     print("=== SELECTED FILES RAW ===")
     print(response)

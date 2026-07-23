@@ -82,7 +82,7 @@ def build_comments_context():
 
 def analyse_issue():
 
-    selected_files = select_files(ISSUE_TITLE, ISSUE_BODY)
+    selected_files = select_files(ISSUE_TITLE, ISSUE_BODY, GROK_API_KEY, REPO_NAME)
 
     print("=== SELECTED FILES ===")
     print(selected_files)
@@ -190,7 +190,7 @@ L'approbation n'est possible que depuis :
         #
         # Code source
         #
-        selected_files = select_files(ISSUE_TITLE, ISSUE_BODY)
+        selected_files = select_files(ISSUE_TITLE, ISSUE_BODY, GROK_API_KEY, REPO_NAME)
         code_context = load_files(
             selected_files
         )
@@ -416,7 +416,7 @@ def handle_changes_requested():
 
     analysis = get_latest_agent_analysis()
 
-    selected_files = select_files(ISSUE_TITLE, ISSUE_BODY)
+    selected_files = select_files(ISSUE_TITLE, ISSUE_BODY, GROK_API_KEY, REPO_NAME)
 
     code_context = load_files(
         selected_files
