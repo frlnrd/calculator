@@ -1,16 +1,36 @@
 const display = document.getElementById('display');
 
 function appendNumber(num) {
+    // Remplace le zéro initial par le chiffre saisi (sauf point)
     if (display.value === '0' && num !== '.') {
-        // Remplace le zéro initial par le chiffre saisi (sauf point)
         display.value = num;
-    } else if (num === '.' && display.value.endsWith('.')) {
-        // Bloque l’ajout d’un point si le champ se termine déjà par un point
         return;
-    } else {
-        // Ajoute le caractère (chiffre ou point) au texte affiché
-        display.value += num;
     }
+
+    // Gestion du point décimal : on empêche un second point dans le même nombre
+    if (num === '.') {
+        // Recherche du dernier opérateur (+ - * /)
+        const lastOperatorIndex = Math.max(
+            display.value.lastIndexOf('+'),
+            display.value.lastIndexOf('-'),
+            display.value.lastIndexOf('*'),
+            display.value.lastIndexOf('/')
+        );
+
+        // Le nombre en cours commence juste après cet opérateur (ou au début)
+        const currentNumber = lastOperatorIndex === -1
+            ? display.value
+            : display.value.slice(lastOperatorIndex + 1);
+
+        // Si le nombre en cours possède déjà un point → on ignore l’entrée
+        if (currentNumber.includes('.')) {
+            return;
+        }
+        // Aucun point présent → on autorise l’ajout du point (sans zéro implicite)
+    }
+
+    // Ajout normal du caractère (chiffre ou point valide)
+    display.value += num;
 }
 
 function appendOperator(operator) {
