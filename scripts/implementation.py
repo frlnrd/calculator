@@ -147,8 +147,8 @@ L'approbation n'est possible que depuis :
         #
         pr = create_pull_request(
             branch_name,
-            github_token,
             repo_name,
+            github_token,
             issue_number
         )
         assign_pull_request(

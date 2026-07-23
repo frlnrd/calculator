@@ -162,6 +162,12 @@ def create_branch(github_token, repo_name, issue_number):
 
 def create_pull_request(branch_name, repo_name, github_token, issue_number):
 
+    print("=== CREATE PR ===")
+    print(f"repo_name={repo_name}")
+    print(f"issue_number={issue_number}")
+    print(f"branch_name={branch_name}")
+    print(f"token_present={bool(github_token)}")
+
     response = requests.post(
         f"https://api.github.com/repos/{repo_name}/pulls",
         headers=get_headers(github_token),
@@ -172,6 +178,13 @@ def create_pull_request(branch_name, repo_name, github_token, issue_number):
             "body": f"Fixes #{issue_number}"
         }
     )
+
+    print("=== CREATE PR STATUS ===")
+    print(response.status_code)
+
+    print("=== CREATE PR RESPONSE ===")
+    print(response.text)
+
     response.raise_for_status()
     return response.json()
 
