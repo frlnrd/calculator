@@ -56,7 +56,7 @@ def main():
         if COMMENT_BODY.strip() == "/approve":
             approve_issue(GITHUB_TOKEN, REPO_NAME, ISSUE_NUMBER, ISSUE_TITLE, ISSUE_BODY, GROK_API_KEY)
         else:
-            analyse_issue()
+            analyse_issue(ISSUE_TITLE, ISSUE_BODY, REPO_NAME, ISSUE_NUMBER, GITHUB_TOKEN, GROK_API_KEY)
 
     elif EVENT_NAME in [
         "issues",
