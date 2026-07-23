@@ -146,7 +146,10 @@ L'approbation n'est possible que depuis :
         # Pull Request
         #
         pr = create_pull_request(
-            branch_name
+            branch_name,
+            github_token,
+            repo_name,
+            issue_number
         )
         assign_pull_request(
             pr["number"]
