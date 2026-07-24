@@ -40,8 +40,17 @@ def build_comments_context(repo_name, issue_number, github_token):
     return context
 
 
-def analyse_issue(issue_title, issue_body, repo_name, issue_number, github_token, grok_api_key):
-
+def analyse_request(
+    issue_number,
+    issue_title,
+    issue_body,
+    repo_name,
+    github_token,
+    grok_api_key,
+    additional_context="",
+    target_state="agent:waiting-approval",
+    analysis_title="## 🤖 Analyse automatique"
+):
     selected_files = select_files(issue_title, issue_body, grok_api_key, repo_name)
 
     print("=== SELECTED FILES ===")
@@ -57,6 +66,7 @@ def analyse_issue(issue_title, issue_body, repo_name, issue_number, github_token
         issue_title=issue_title,
         issue_body=issue_body,
         comments_context=comments_context,
+        additional_context=additional_context,
         code_context=code_context
     )
     analysis = call_llm(
@@ -69,13 +79,13 @@ def analyse_issue(issue_title, issue_body, repo_name, issue_number, github_token
     print(analysis)
 
     set_state(
-        "agent:waiting-approval",
+        target_state,
         repo_name,
         issue_number,
         github_token
     )
 
-    comment_body = f"""## 🤖 Analyse automatique
+    comment_body = f"""{analysis_title}
 
 **Modèle utilisé :** `{MODEL}`
 
@@ -99,6 +109,59 @@ Pour lancer l'implémentation :
         github_token,
         repo_name,
         issue_number
+    )
+
+
+def analyse_issue(
+    issue_number,
+    issue_title,
+    issue_body,
+    repo_name,
+    github_token,
+    grok_api_key
+):
+
+    analyse_request(
+        issue_number,
+        issue_title,
+        issue_body,
+        repo_name,
+        github_token,
+        grok_api_key
+    )
+
+
+def analyse_review_changes(
+    issue_number,
+    issue_title,
+    issue_body,
+    repo_name,
+    github_token,
+    grok_api_key,
+    review_state,
+    review_body
+):
+
+    analyse_request(
+        issue_number,
+        issue_title,
+        issue_body,
+        repo_name,
+        github_token,
+        grok_api_key,
+        additional_context=f"""
+=== REVIEW CHANGES REQUESTED ===
+
+Etat :
+
+{review_state}
+
+Commentaire :
+
+{review_body}
+""",
+        target_state="agent:waiting-review-approval",
+        analysis_title="## 🤖 Analyse des changements demandés"
     )
 
 

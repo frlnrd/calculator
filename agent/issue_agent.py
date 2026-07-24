@@ -1,8 +1,10 @@
+from scripts.state_utils import get_current_state
 from scripts.github_utils import (
     get_headers
 )
 from scripts.analysis import (
-    analyse_issue
+    analyse_issue,
+    analyse_review_changes
 )
 from scripts.implementation import (
     approve_issue, 
@@ -54,7 +56,35 @@ def main():
     if EVENT_NAME == "issue_comment":
 
         if COMMENT_BODY.strip() == "/approve":
-            approve_issue(GITHUB_TOKEN, REPO_NAME, ISSUE_NUMBER, ISSUE_TITLE, ISSUE_BODY, GROK_API_KEY)
+            current_state = get_current_state(
+                REPO_NAME,
+                ISSUE_NUMBER,
+                GITHUB_TOKEN
+            )
+
+            if current_state == "agent:waiting-approval":
+
+                approve_issue(
+                    GITHUB_TOKEN,
+                    REPO_NAME,
+                    ISSUE_NUMBER,
+                    ISSUE_TITLE,
+                    ISSUE_BODY,
+                    GROK_API_KEY
+                )
+
+            elif current_state == "agent:waiting-review-approval":
+
+                handle_changes_requested(
+                    GITHUB_TOKEN,
+                    REPO_NAME,
+                    ISSUE_NUMBER,
+                    ISSUE_TITLE,
+                    ISSUE_BODY,
+                    GROK_API_KEY,
+                    REVIEW_STATE,
+                    REVIEW_BODY
+                )
         else:
             analyse_issue(ISSUE_TITLE, ISSUE_BODY, REPO_NAME, ISSUE_NUMBER, GITHUB_TOKEN, GROK_API_KEY)
 
@@ -78,8 +108,19 @@ def main():
         print(REVIEW_BODY)
 
         if REVIEW_STATE == "changes_requested":
+
             print(f"=== CHANGES REQUESTED FOR ISSUE {ISSUE_NUMBER} ===")
-            handle_changes_requested(ISSUE_NUMBER, ISSUE_TITLE, ISSUE_BODY, REPO_NAME, GITHUB_TOKEN, GROK_API_KEY, REVIEW_STATE, REVIEW_BODY)
+
+            analyse_review_changes(
+                ISSUE_NUMBER,
+                ISSUE_TITLE,
+                ISSUE_BODY,
+                REPO_NAME,
+                GITHUB_TOKEN,
+                GROK_API_KEY,
+                REVIEW_STATE,
+                REVIEW_BODY
+            )
     else:
 
         print(

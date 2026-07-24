@@ -58,6 +58,10 @@ Description :
 
 {comments_context}
 
+=== CONTEXTE COMPLEMENTAIRE ===
+
+{additional_context}
+
 === CODE ===
 
 {code_context}
