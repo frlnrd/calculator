@@ -94,6 +94,8 @@ body {
 .clear-btn {                     /* bouton C */
     background: #e53e3e;        /* rouge moyen */
     color: #fff;
+    grid-column: span 2;        /* largeur de deux colonnes */
+    aspect-ratio: auto;         /* hauteur d’une rangée */
 }
 
 .clear-btn:hover {
@@ -120,8 +122,7 @@ body {
 }
 
 .zero {
-    grid-column: span 2;
-    aspect-ratio: auto;           /* désactive le carré pour le 0 */
+    /* No styles needed as button 0 no longer uses this class */
 }
 
 .equals-btn {
