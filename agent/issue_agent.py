@@ -86,14 +86,14 @@ def main():
                     REVIEW_BODY
                 )
         else:
-            analyse_issue(ISSUE_TITLE, ISSUE_BODY, REPO_NAME, ISSUE_NUMBER, GITHUB_TOKEN, GROK_API_KEY)
+            analyse_issue(ISSUE_NUMBER, ISSUE_TITLE, ISSUE_BODY, REPO_NAME, GITHUB_TOKEN, GROK_API_KEY)
 
     elif EVENT_NAME in [
         "issues",
         "workflow_dispatch"
     ]:
 
-        analyse_issue(ISSUE_TITLE, ISSUE_BODY, REPO_NAME, ISSUE_NUMBER, GITHUB_TOKEN, GROK_API_KEY)
+        analyse_issue(ISSUE_NUMBER, ISSUE_TITLE, ISSUE_BODY, REPO_NAME, GITHUB_TOKEN, GROK_API_KEY)
     elif EVENT_NAME == "pull_request_review":
 
         ISSUE_NUMBER = get_issue_number_from_pr(REPO_NAME, PR_NUMBER, GITHUB_TOKEN)
