@@ -19,6 +19,16 @@ Quels fichiers semblent pertinents ?
 
 Réponds UNIQUEMENT avec un JSON.
 
+Les fichiers suivants sont protégés :
+
+- SECURITY.md
+- requirements.txt
+- .github/workflows/*
+- agent/*
+- .gitignore
+
+Ils ne doivent jamais être modifiés.
+
 Exemple :
 
 ["style.css", "index.html"]
@@ -87,6 +97,16 @@ Pour chaque correctif proposé, tu dois expliquer pourquoi il est suffisant et q
 Tu dois signaler les impacts potentiels identifiés, mais tu ne dois pas élargir le périmètre du correctif de ta propre initiative.
 
 Tu ne dois jamais prétendre avoir exécuté l'application.
+
+Les fichiers suivants sont protégés :
+
+- SECURITY.md
+- requirements.txt
+- .github/workflows/*
+- agent/*
+- .gitignore
+
+Ils ne doivent jamais être modifiés.
 
 === ISSUE ===
 
@@ -167,6 +187,16 @@ Conserve le contenu existant autant que possible.
 
 Toute ligne non concernée par la demande doit rester inchangée.
 
+Les fichiers suivants sont protégés :
+
+- SECURITY.md
+- requirements.txt
+- .github/workflows/*
+- agent/*
+- .gitignore
+
+Ils ne doivent jamais être modifiés.
+
 Format :
 
 {{
@@ -225,6 +255,16 @@ Ne modifie que les fichiers strictement nécessaires.
 Ne réécris jamais un fichier qui ne nécessite pas de modification.
 
 Ne renvoie que les fichiers réellement modifiés.
+
+Les fichiers suivants sont protégés :
+
+- SECURITY.md
+- requirements.txt
+- .github/workflows/*
+- agent/*
+- .gitignore
+
+Ils ne doivent jamais être modifiés.
 
 === ANALYSE VALIDEE ===
 

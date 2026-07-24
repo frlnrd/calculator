@@ -12,3 +12,7 @@ EXCLUDED_DIRS = {
     "venv",
     "agent"
 }
+PROTECTED_FILES = {
+    "SECURITY.MD",
+    "requirements.txt"
+}

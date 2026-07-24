@@ -3,6 +3,7 @@ import json
 from scripts.constants import (
     EXCLUDED_DIRS,
     PROTECTED_PATHS,
+    PROTECTED_FILES
 )
 from scripts.prompts import FILE_SELECTION_PROMPT
 from scripts.llm_utils import call_llm
@@ -21,7 +22,7 @@ def validate_path(path):
 
     for protected_path in PROTECTED_PATHS:
 
-        if path.startswith(protected_path):
+        if path.startswith(protected_path) or path in PROTECTED_FILES:
 
             raise Exception(
                 f"Modification interdite : {path}"
