@@ -76,6 +76,15 @@ body {
     transform: translateY(-2px);
 }
 
+/* -------------------------------------------------
+   Classe appliquée depuis le script pour reproduire
+   le même rendu que le :hover sur les boutons.
+   ------------------------------------------------- */
+.btn.key-active {
+    background: #e0e0e0;
+    transform: translateY(-2px);
+}
+
 .btn:active {
     transform: translateY(0);
     box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
