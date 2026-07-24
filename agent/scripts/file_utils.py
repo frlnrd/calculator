@@ -104,7 +104,11 @@ def select_files(issue_title, issue_body, grok_api_key, repo_name):
         issue_title=issue_title,
         issue_body=issue_body
     )
-    response = call_llm(prompt, grok_api_key, repo_name)
+    response = call_llm(
+        prompt=prompt,
+        grok_api_key=grok_api_key,
+        repo_name=repo_name
+    )
 
     print("=== SELECTED FILES RAW ===")
     print(response)

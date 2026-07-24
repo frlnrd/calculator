@@ -237,7 +237,11 @@ def resolve_issue_number(issue_number, event_name, repo_name, pr_number, github_
         return issue_number
 
     if event_name == "pull_request_review":
-        return get_issue_number_from_pr(repo_name, pr_number, github_token)
+        return get_issue_number_from_pr(
+            repo_name=repo_name,
+            pr_number=pr_number,
+            github_token=github_token
+        )
 
     return issue_number
 

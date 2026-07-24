@@ -1,7 +1,4 @@
 from scripts.state_utils import get_current_state
-from scripts.github_utils import (
-    get_headers
-)
 from scripts.analysis import (
     analyse_issue,
     analyse_review_changes
@@ -48,7 +45,13 @@ def main():
 
     global ISSUE_NUMBER
 
-    ISSUE_NUMBER = resolve_issue_number(ISSUE_NUMBER, EVENT_NAME, REPO_NAME, PR_NUMBER, GITHUB_TOKEN)
+    ISSUE_NUMBER = resolve_issue_number(
+        issue_number=ISSUE_NUMBER,
+        event_name=EVENT_NAME,
+        repo_name=REPO_NAME,
+        pr_number=PR_NUMBER,
+        github_token=GITHUB_TOKEN
+    )
 
     print("=== ISSUE NUMBER ===")
     print(ISSUE_NUMBER)
@@ -57,43 +60,64 @@ def main():
 
         if COMMENT_BODY.strip() == "/approve":
             current_state = get_current_state(
-                REPO_NAME,
-                ISSUE_NUMBER,
-                GITHUB_TOKEN
+                repo_name=REPO_NAME,
+                issue_number=ISSUE_NUMBER,
+                github_token=GITHUB_TOKEN
             )
 
-            if current_state == "agent:waiting-approval":
+            if current_state in [
+                "agent:waiting-approval",
+                "agent:failed"
+            ]:
 
                 approve_issue(
-                    GITHUB_TOKEN,
-                    REPO_NAME,
-                    ISSUE_NUMBER,
-                    ISSUE_TITLE,
-                    ISSUE_BODY,
-                    GROK_API_KEY
+                    github_token=GITHUB_TOKEN,
+                    repo_name=REPO_NAME,
+                    issue_number=ISSUE_NUMBER,
+                    issue_title=ISSUE_TITLE,
+                    issue_body=ISSUE_BODY,
+                    grok_api_key=GROK_API_KEY
                 )
 
             elif current_state == "agent:waiting-review-approval":
 
                 handle_changes_requested(
-                    GITHUB_TOKEN,
-                    REPO_NAME,
-                    ISSUE_NUMBER,
-                    ISSUE_TITLE,
-                    ISSUE_BODY,
-                    GROK_API_KEY,
-                    REVIEW_STATE,
-                    REVIEW_BODY
+                    github_token=GITHUB_TOKEN,
+                    repo_name=REPO_NAME,
+                    issue_number=ISSUE_NUMBER,
+                    issue_title=ISSUE_TITLE,
+                    issue_body=ISSUE_BODY,
+                    grok_api_key=GROK_API_KEY,
+                    review_state=REVIEW_STATE,
+                    review_body=REVIEW_BODY
+                )
+            else:
+                print(
+                    f"/approve ignoré pour l'état : {current_state}"
                 )
         else:
-            analyse_issue(ISSUE_NUMBER, ISSUE_TITLE, ISSUE_BODY, REPO_NAME, GITHUB_TOKEN, GROK_API_KEY)
+            analyse_issue(
+                issue_number=ISSUE_NUMBER,
+                issue_title=ISSUE_TITLE,
+                issue_body=ISSUE_BODY,
+                repo_name=REPO_NAME,
+                github_token=GITHUB_TOKEN,
+                grok_api_key=GROK_API_KEY
+            )
 
     elif EVENT_NAME in [
         "issues",
         "workflow_dispatch"
     ]:
 
-        analyse_issue(ISSUE_NUMBER, ISSUE_TITLE, ISSUE_BODY, REPO_NAME, GITHUB_TOKEN, GROK_API_KEY)
+        analyse_issue(
+            issue_number=ISSUE_NUMBER,
+            issue_title=ISSUE_TITLE,
+            issue_body=ISSUE_BODY,
+            repo_name=REPO_NAME,
+            github_token=GITHUB_TOKEN,
+            grok_api_key=GROK_API_KEY
+        )
     elif EVENT_NAME == "pull_request_review":
 
         ISSUE_NUMBER = get_issue_number_from_pr(REPO_NAME, PR_NUMBER, GITHUB_TOKEN)
@@ -112,17 +136,16 @@ def main():
             print(f"=== CHANGES REQUESTED FOR ISSUE {ISSUE_NUMBER} ===")
 
             analyse_review_changes(
-                ISSUE_NUMBER,
-                ISSUE_TITLE,
-                ISSUE_BODY,
-                REPO_NAME,
-                GITHUB_TOKEN,
-                GROK_API_KEY,
-                REVIEW_STATE,
-                REVIEW_BODY
+                issue_number=ISSUE_NUMBER,
+                issue_title=ISSUE_TITLE,
+                issue_body=ISSUE_BODY,
+                repo_name=REPO_NAME,
+                github_token=GITHUB_TOKEN,
+                grok_api_key=GROK_API_KEY,
+                review_state=REVIEW_STATE,
+                review_body=REVIEW_BODY
             )
     else:
-
         print(
             f"Événement ignoré : {EVENT_NAME}"
         )

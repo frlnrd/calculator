@@ -10,6 +10,7 @@ STATES = [
     "agent:implementing",
     "agent:waiting-review",
     "agent:waiting-review-approval",
+    "agent:failed",
     "agent:completed"
 ]
 

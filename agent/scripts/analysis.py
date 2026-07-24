@@ -21,7 +21,11 @@ from scripts.state_utils import (
 
 def build_comments_context(repo_name, issue_number, github_token):
 
-    comments = get_issue_comments(repo_name, issue_number, github_token)
+    comments = get_issue_comments(
+        repo_name=repo_name,
+        issue_number=issue_number,
+        github_token=github_token
+    )
 
     context = ""
 
@@ -51,16 +55,25 @@ def analyse_request(
     target_state="agent:waiting-approval",
     analysis_title="## 🤖 Analyse automatique"
 ):
-    selected_files = select_files(issue_title, issue_body, grok_api_key, repo_name)
+    selected_files = select_files(
+        issue_title=issue_title,
+        issue_body=issue_body,
+        grok_api_key=grok_api_key,
+        repo_name=repo_name
+    )
 
     print("=== SELECTED FILES ===")
     print(selected_files)
 
     code_context = load_files(
-        selected_files
+        file_list=selected_files
     )
 
-    comments_context = build_comments_context(repo_name, issue_number, github_token)
+    comments_context = build_comments_context(
+        repo_name=repo_name,
+        issue_number=issue_number,
+        github_token=github_token
+    )
 
     analysis_prompt = ANALYSIS_PROMPT.format(
         issue_title=issue_title,
@@ -70,19 +83,19 @@ def analyse_request(
         code_context=code_context
     )
     analysis = call_llm(
-        analysis_prompt,
-        grok_api_key,
-        repo_name
+        prompt=analysis_prompt,
+        grok_api_key=grok_api_key,
+        repo_name=repo_name
     )
 
     print("=== ANALYSIS ===")
     print(analysis)
 
     set_state(
-        target_state,
-        repo_name,
-        issue_number,
-        github_token
+        new_state=target_state,
+        repo_name=repo_name,
+        issue_number=issue_number,
+        github_token=github_token
     )
 
     comment_body = f"""{analysis_title}
@@ -105,10 +118,10 @@ Pour lancer l'implémentation :
 """
 
     publish_comment(
-        comment_body, 
-        github_token,
-        repo_name,
-        issue_number
+        body=comment_body,
+        github_token=github_token,
+        repo_name=repo_name,
+        issue_number=issue_number
     )
 
 
@@ -122,12 +135,12 @@ def analyse_issue(
 ):
 
     analyse_request(
-        issue_number,
-        issue_title,
-        issue_body,
-        repo_name,
-        github_token,
-        grok_api_key
+        issue_number=issue_number,
+        issue_title=issue_title,
+        issue_body=issue_body,
+        repo_name=repo_name,
+        github_token=github_token,
+        grok_api_key=grok_api_key
     )
 
 
@@ -143,12 +156,12 @@ def analyse_review_changes(
 ):
 
     analyse_request(
-        issue_number,
-        issue_title,
-        issue_body,
-        repo_name,
-        github_token,
-        grok_api_key,
+        issue_number=issue_number,
+        issue_title=issue_title,
+        issue_body=issue_body,
+        repo_name=repo_name,
+        github_token=github_token,
+        grok_api_key=grok_api_key,
         additional_context=f"""
 === REVIEW CHANGES REQUESTED ===
 
@@ -167,7 +180,11 @@ Commentaire :
 
 def get_latest_agent_analysis(repo_name, issue_number, github_token):
 
-    comments = get_issue_comments(repo_name, issue_number, github_token)
+    comments = get_issue_comments(
+        repo_name=repo_name,
+        issue_number=issue_number,
+        github_token=github_token
+    )
 
     for comment in reversed(comments):
 

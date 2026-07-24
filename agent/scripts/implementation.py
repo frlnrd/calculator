@@ -4,10 +4,6 @@ from scripts.prompts import (
     IMPLEMENTATION_PROMPT,
     IMPLEMENTATION_PR_PROMPT
 )
-from scripts.config import (
-    REPO_NAME,
-    GROK_API_KEY
-)
 from scripts.llm_utils import (
     call_llm
 )
@@ -48,7 +44,11 @@ def generate_implementation(
         code_context=code_context
     )
 
-    response = call_llm(prompt, grok_api_key, repo_name)
+    response = call_llm(
+        prompt, 
+        grok_api_key=grok_api_key, 
+        repo_name=repo_name
+    )
 
     try:
         print("=== GENERATED IMPLEMENTATION RAW ===")
@@ -64,12 +64,19 @@ def generate_implementation(
 
 def approve_issue(github_token, repo_name, issue_number, issue_title, issue_body, grok_api_key):
 
-    current_state = get_current_state(repo_name, issue_number, github_token)
+    current_state = get_current_state(
+        repo_name=repo_name,
+        issue_number=issue_number,
+        github_token=github_token
+    )
 
-    if current_state != "agent:waiting-approval":
+    if current_state not in [
+        "agent:waiting-approval",
+        "agent:failed"
+    ]:
 
         publish_comment(
-            f"""⚠️ Commande `/approve` ignorée.
+            body=f"""⚠️ Commande `/approve` ignorée.
 
 État actuel :
 
@@ -79,95 +86,108 @@ L'approbation n'est possible que depuis :
 
 `agent:waiting-approval`
 """, 
-            github_token,
-            repo_name,
-            issue_number
+            github_token=github_token,
+            repo_name=repo_name,
+            issue_number=issue_number
         )
         return
     try:
         #
         # Analyse validée
         #
-        analysis = get_latest_agent_analysis(repo_name, issue_number, github_token)
+        analysis = get_latest_agent_analysis(
+            repo_name=repo_name, 
+            issue_number=issue_number, 
+            github_token=github_token
+            )
 
         if not analysis:
 
             publish_comment(
-                "❌ Impossible de trouver une analyse à implémenter.",
-                github_token,
-                repo_name,
-                issue_number
+                body=f"""❌ Impossible de trouver une analyse à implémenter.""",
+                github_token=github_token,
+                repo_name=repo_name,
+                issue_number=issue_number
             )
 
             return
         #
         # Branche
         #
-        branch_name = create_branch(github_token, repo_name, issue_number)
+        branch_name = create_branch(
+            github_token=github_token, 
+            repo_name=repo_name, 
+            issue_number=issue_number
+            )
         checkout_branch(
-            branch_name
+            branch_name=branch_name
         )
         set_state(
-            "agent:implementing",
-            repo_name,
-            issue_number,
-            github_token
+            new_state="agent:implementing",
+            repo_name=repo_name,
+            issue_number=issue_number,
+            github_token=github_token
         )
         #
         # Code source
         #
-        selected_files = select_files(issue_title, issue_body, grok_api_key, repo_name)
+        selected_files = select_files(
+            issue_title=issue_title,
+            issue_body=issue_body,
+            grok_api_key=grok_api_key,
+            repo_name=repo_name
+        )
         code_context = load_files(
-            selected_files
+            file_list=selected_files
         )
         #
         # Génération
         #
         changes = generate_implementation(
-            analysis,
-            code_context,
-            grok_api_key,
-            repo_name
+            analysis=analysis,
+            code_context=code_context,
+            grok_api_key=grok_api_key,
+            repo_name=repo_name
         )
         #
         # Ecriture des fichiers
         #
         apply_changes(
-            changes
+            changes=changes
         )
         #
         # Commit
         #
-        commit_changes(issue_number)
+        commit_changes(issue_number=issue_number)
         #
         # Push
         #
         push_branch(
-            branch_name
+            branch_name=branch_name
         )
         #
         # Pull Request
         #
         pr = create_pull_request(
-            branch_name,
-            repo_name,
-            github_token,
-            issue_number
+            branch_name=branch_name,
+            repo_name=repo_name,
+            github_token=github_token,
+            issue_number=issue_number
         )
         assign_pull_request(
-            pr["number"],
-            repo_name,
-            github_token
+            pr_number=pr["number"],
+            repo_name=repo_name,
+            github_token=github_token
         )
         pr_url = pr["html_url"]
         set_state(
-            "agent:waiting-review",
-            repo_name,
-            issue_number,
-            github_token
+            new_state="agent:waiting-review",
+            repo_name=repo_name,
+            issue_number=issue_number,
+            github_token=github_token
         )
         publish_comment(
-            f"""✅ Implémentation terminée.
+            body=f"""✅ Implémentation terminée.
 
 Branche :
 
@@ -181,143 +201,188 @@ Pull Request :
 
 `agent:waiting-review`
 """,
-            github_token,
-            repo_name,
-            issue_number
+            github_token=github_token,
+            repo_name=repo_name,
+            issue_number=issue_number
         )
 
     except Exception as ex:
 
+        set_state(
+            new_state="agent:failed",
+            repo_name=repo_name,
+            issue_number=issue_number,
+            github_token=github_token
+        )
+
         publish_comment(
-            f"""❌ Échec de l'implémentation.
+            body=f"""❌ Échec de l'implémentation.
+
+Etat :
+
+'agent:failed'
 
 Erreur :
 
 ```text
 {str(ex)}
 """,
-            github_token,
-            repo_name,
-            issue_number
+            github_token=github_token,
+            repo_name=repo_name,
+            issue_number=issue_number
         )
         raise
 
 
 def handle_changes_requested(issue_number, issue_title, issue_body, repo_name, github_token, grok_api_key, review_state, review_body):
 
-    print("STEP 1")
-    current_state = get_current_state(repo_name, issue_number, github_token)
+    current_state = get_current_state(
+        repo_name=repo_name, 
+        issue_number=issue_number, 
+        github_token=github_token
+        )
 
-    print("STEP 2")
     if current_state != "agent:waiting-review":
         return
 
-    print("STEP 2-0")
-    branch_name = f"agent/issue-{issue_number}"
+    try:
+        branch_name = f"agent/issue-{issue_number}"
 
-    print("STEP 2-1")
-    checkout_branch(
-        branch_name
-    )
-
-    print("STEP 3")
-    set_state(
-        "agent:implementing",
-        repo_name,
-        issue_number,
-        github_token
-    )
-
-    print("STEP 4")
-    analysis = get_latest_agent_analysis(repo_name, issue_number, github_token)
-
-    print("STEP 5")
-    selected_files = select_files(issue_title, issue_body, grok_api_key, repo_name)
-
-    print("STEP 6")
-    code_context = load_files(
-        selected_files
-    )
-
-    print("STEP 7")
-    review_context = build_review_context(review_state, review_body)
-
-    implementation_pr_prompt = IMPLEMENTATION_PR_PROMPT.format(
-        analysis=analysis,
-        review_context=review_context,
-        code_context=code_context
-    )
-
-    print("STEP 8")
-    response = call_llm(
-        implementation_pr_prompt,
-        grok_api_key,
-        repo_name
-    )
-
-    print("STEP 9")
-    print("=== IMPLEMENTATION RAW RESPONSE ===")
-    print(response)
-
-    response = response.strip()
-
-    if not response.endswith("}"):
-
-        publish_comment(
-            repo_name,
-            issue_number,
-            github_token,
-            """❌ Réponse du modèle tronquée.
-
-La réponse ne se termine pas par une accolade fermante.
-"""
+        checkout_branch(
+            branch_name=branch_name
         )
 
-        return
+        set_state(
+            new_state="agent:implementing",
+            repo_name=repo_name,
+            issue_number=issue_number,
+            github_token=github_token
+        )
 
-    try:
+        analysis = get_latest_agent_analysis(
+            repo_name=repo_name, 
+            issue_number=issue_number, 
+            github_token=github_token
+            )
 
-        changes = json.loads(
-            response
+        selected_files = select_files(
+            issue_title=issue_title, 
+            issue_body=issue_body, 
+            grok_api_key=grok_api_key, 
+            repo_name=repo_name
+            )
+
+        code_context = load_files(
+            file_list=selected_files
+        )
+
+        review_context = build_review_context(
+            review_state=review_state, 
+            review_body=review_body
+        )
+
+        implementation_pr_prompt = IMPLEMENTATION_PR_PROMPT.format(
+            analysis=analysis,
+            review_context=review_context,
+            code_context=code_context
+        )
+
+        response = call_llm(
+            prompt=implementation_pr_prompt,
+            grok_api_key=grok_api_key,
+            repo_name=repo_name
+        )
+
+        print("=== IMPLEMENTATION RAW RESPONSE ===")
+        print(response)
+
+        response = response.strip()
+
+        if not response.endswith("}"):
+
+            publish_comment(
+                body=f"""❌ Réponse du modèle tronquée.
+
+La réponse ne se termine pas par une accolade fermante.
+""",
+                github_token=github_token,
+                repo_name=repo_name,
+                issue_number=issue_number
+            )
+
+            return
+
+        try:
+
+            changes = json.loads(
+                response
+            )
+
+        except Exception as ex:
+
+            print("=== INVALID JSON ===")
+            print(response)
+
+            publish_comment(
+                body=f"❌ JSON invalide généré par le modèle : {str(ex)}",
+                github_token=github_token,
+                repo_name=repo_name,
+                issue_number=issue_number
+            )
+
+            return
+
+        apply_changes(
+            changes=changes
+        )
+
+        commit_changes(issue_number=issue_number)
+
+        push_branch(
+            branch_name=branch_name
+        )
+
+        set_state(
+            new_state="agent:waiting-review",
+            repo_name=repo_name,
+            issue_number=issue_number,
+            github_token=github_token
+        )
+
+        publish_comment(
+            body="""✅ Demandes de revue prises en compte.
+
+Un nouveau commit a été poussé sur la branche associée à l'issue.
+""",
+            github_token=github_token,
+            repo_name=repo_name,
+            issue_number=issue_number
         )
 
     except Exception as ex:
 
-        print("=== INVALID JSON ===")
-        print(response)
-
-        publish_comment(
-            repo_name,
-            issue_number,
-            github_token,
-            f"❌ JSON invalide généré par le modèle : {str(ex)}"
+        set_state(
+            new_state="agent:failed",
+            repo_name=repo_name,
+            issue_number=issue_number,
+            github_token=github_token
         )
 
-        return
+        publish_comment(
+            body=f"""❌ Échec de la prise en compte de la review.
 
-    apply_changes(
-        changes
-    )
+Etat :
 
-    commit_changes(issue_number)
+`agent:failed`
 
-    push_branch(
-        branch_name
-    )
+Erreur :
 
-    set_state(
-        "agent:waiting-review",
-        repo_name,
-        issue_number,
-        github_token
-    )
-
-    publish_comment(
-        """✅ Demandes de revue prises en compte.
-
-Un nouveau commit a été poussé sur la branche associée à l'issue.
+```text
+{str(ex)}
 """,
-        github_token,
-        repo_name,
-        issue_number
-    )
+            github_token=github_token,
+            repo_name=repo_name,
+            issue_number=issue_number
+        )
+
+        raise
