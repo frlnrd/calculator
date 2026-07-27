@@ -221,3 +221,31 @@ def assign_pull_request(pr_number, repo_name, github_token):
         }
     )
     response.raise_for_status()
+
+
+def get_issue_number_from_pr(repo_name, pr_number, github_token):
+
+    response = requests.get(
+        f"https://api.github.com/repos/{repo_name}/pulls/{pr_number}",
+        headers=get_headers(github_token),
+        timeout=30
+    )
+
+    response.raise_for_status()
+
+    branch_name = response.json()["head"]["ref"]
+
+    print("=== PR BRANCH ===")
+    print(branch_name)
+
+    if not branch_name.startswith(
+        "agent/issue-"
+    ):
+        raise Exception(
+            f"Branche invalide : {branch_name}"
+        )
+
+    return branch_name.replace(
+        "agent/issue-",
+        ""
+    )

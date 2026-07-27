@@ -22,6 +22,9 @@ from scripts.config import (
     TARGET_TYPE,
     TARGET_ID
 )
+from scripts.github_utils import (
+    get_issue_number_from_pr
+)
 from classes.context import AgentContext
 
 print("=== EVENT ===")
@@ -107,8 +110,14 @@ def main():
 
         if REVIEW_STATE == "changes_requested":
 
-            print(f"=== CHANGES REQUESTED FOR ISSUE {ISSUE_NUMBER} ===")
+            ISSUE_NUMBER = get_issue_number_from_pr(REPO_NAME, PR_NUMBER, GITHUB_TOKEN)
 
+            print(f"=== CHANGES REQUESTED FOR ISSUE {ISSUE_NUMBER} ===")
+            context.issue_number=ISSUE_NUMBER
+
+            print(f"TARGET_TYPE={context.target_type}")
+            print(f"TARGET_ID={context.target_id}")
+            print(f"ISSUE_NUMBER={context.issue_number}")
             analyse_review_changes(context)
     else:
         print(
