@@ -36,6 +36,20 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      - name: Set target
+        run: |
+          if [ "${EVENT_NAME}" = "pull_request_review" ]; then
+            echo "TARGET_TYPE=pull_request" >> $GITHUB_ENV
+            echo "TARGET_ID=${PR_NUMBER}" >> $GITHUB_ENV
+          else
+            echo "TARGET_TYPE=issue" >> $GITHUB_ENV
+            echo "TARGET_ID=${ISSUE_NUMBER}" >> $GITHUB_ENV
+          fi
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+
       - name: Run Agent
         env:
           GROK_API_KEY: ${{ secrets.GROK_API_KEY }}

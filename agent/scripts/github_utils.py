@@ -7,10 +7,24 @@ def get_headers(github_token):
     }
 
 
-def publish_comment(body, github_token, repo_name, issue_number):
+def publish_comment(
+    body,
+    github_token,
+    repo_name,
+    target_type,
+    target_id
+):
+
+    if target_type not in [
+        "issue",
+        "pull_request"
+    ]:
+        raise Exception(
+            f"Type de cible inconnu : {target_type}"
+        )
 
     response = requests.post(
-        f"https://api.github.com/repos/{repo_name}/issues/{issue_number}/comments",
+        f"https://api.github.com/repos/{repo_name}/issues/{target_id}/comments",
         headers=get_headers(github_token),
         json={
             "body": body
@@ -22,6 +36,7 @@ def publish_comment(body, github_token, repo_name, issue_number):
     print(response.status_code)
 
     response.raise_for_status()
+
 
 
 def add_label(
@@ -65,10 +80,12 @@ def remove_label(
 def get_issue_comments(
     repo_name,
     issue_number,
-    github_token
+    github_token,
+    target_type,
+    target_id
 ):
     response = requests.get(
-        f"https://api.github.com/repos/{repo_name}/issues/{issue_number}/comments",
+        f"https://api.github.com/repos/{repo_name}/issues/{target_id}/comments",
         headers=get_headers(github_token),
         timeout=30
     )

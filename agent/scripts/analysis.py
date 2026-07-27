@@ -53,7 +53,9 @@ def analyse_request(
     grok_api_key,
     additional_context="",
     target_state="agent:waiting-approval",
-    analysis_title="## 🤖 Analyse automatique"
+    analysis_title="## 🤖 Analyse automatique",
+    target_type="issue",
+    target_id=None
 ):
     selected_files = select_files(
         issue_title=issue_title,
@@ -121,7 +123,8 @@ Pour lancer l'implémentation :
         body=comment_body,
         github_token=github_token,
         repo_name=repo_name,
-        issue_number=issue_number
+        target_type=target_type,
+        target_id=target_id
     )
 
 
@@ -131,7 +134,9 @@ def analyse_issue(
     issue_body,
     repo_name,
     github_token,
-    grok_api_key
+    grok_api_key,
+    target_type,
+    target_id
 ):
 
     analyse_request(
@@ -140,7 +145,9 @@ def analyse_issue(
         issue_body=issue_body,
         repo_name=repo_name,
         github_token=github_token,
-        grok_api_key=grok_api_key
+        grok_api_key=grok_api_key,
+        target_type=target_type,
+        target_id=target_id
     )
 
 
@@ -152,7 +159,9 @@ def analyse_review_changes(
     github_token,
     grok_api_key,
     review_state,
-    review_body
+    review_body,
+    target_type,
+    target_id
 ):
 
     analyse_request(
@@ -174,7 +183,9 @@ Commentaire :
 {review_body}
 """,
         target_state="agent:waiting-review-approval",
-        analysis_title="## 🤖 Analyse des changements demandés"
+        analysis_title="## 🤖 Analyse des changements demandés",
+        target_type=target_type,
+        target_id=target_id
     )
 
 

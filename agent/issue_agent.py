@@ -18,7 +18,9 @@ from scripts.config import (
     REPO_NAME,
     REVIEW_STATE,
     REVIEW_BODY,
-    PR_NUMBER
+    PR_NUMBER,
+    TARGET_TYPE,
+    TARGET_ID
 )
 from scripts.github_utils import (
     resolve_issue_number,
@@ -76,7 +78,9 @@ def main():
                     issue_number=ISSUE_NUMBER,
                     issue_title=ISSUE_TITLE,
                     issue_body=ISSUE_BODY,
-                    grok_api_key=GROK_API_KEY
+                    grok_api_key=GROK_API_KEY,
+                    target_type=TARGET_TYPE,
+                    target_id=TARGET_ID
                 )
 
             elif current_state == "agent:waiting-review-approval":
@@ -89,7 +93,9 @@ def main():
                     issue_body=ISSUE_BODY,
                     grok_api_key=GROK_API_KEY,
                     review_state=REVIEW_STATE,
-                    review_body=REVIEW_BODY
+                    review_body=REVIEW_BODY,
+                    target_type=TARGET_TYPE,
+                    target_id=TARGET_ID
                 )
             else:
                 print(
@@ -102,7 +108,9 @@ def main():
                 issue_body=ISSUE_BODY,
                 repo_name=REPO_NAME,
                 github_token=GITHUB_TOKEN,
-                grok_api_key=GROK_API_KEY
+                grok_api_key=GROK_API_KEY,
+                target_type=TARGET_TYPE,
+                target_id=TARGET_ID
             )
 
     elif EVENT_NAME in [
@@ -116,7 +124,9 @@ def main():
             issue_body=ISSUE_BODY,
             repo_name=REPO_NAME,
             github_token=GITHUB_TOKEN,
-            grok_api_key=GROK_API_KEY
+            grok_api_key=GROK_API_KEY,
+            target_type=TARGET_TYPE,
+            target_id=TARGET_ID
         )
     elif EVENT_NAME == "pull_request_review":
 
@@ -143,7 +153,9 @@ def main():
                 github_token=GITHUB_TOKEN,
                 grok_api_key=GROK_API_KEY,
                 review_state=REVIEW_STATE,
-                review_body=REVIEW_BODY
+                review_body=REVIEW_BODY,
+                target_type=TARGET_TYPE,
+                target_id=TARGET_ID
             )
     else:
         print(

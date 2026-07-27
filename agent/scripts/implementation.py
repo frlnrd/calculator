@@ -62,7 +62,16 @@ def generate_implementation(
         raise
 
 
-def approve_issue(github_token, repo_name, issue_number, issue_title, issue_body, grok_api_key):
+def approve_issue(
+        github_token, 
+        repo_name, 
+        issue_number, 
+        issue_title, 
+        issue_body, 
+        grok_api_key, 
+        target_type, 
+        target_id
+        ):
 
     current_state = get_current_state(
         repo_name=repo_name,
@@ -88,7 +97,8 @@ L'approbation n'est possible que depuis :
 """, 
             github_token=github_token,
             repo_name=repo_name,
-            issue_number=issue_number
+            target_type=target_type,
+            target_id=target_id
         )
         return
     try:
@@ -107,7 +117,9 @@ L'approbation n'est possible que depuis :
                 body=f"""❌ Impossible de trouver une analyse à implémenter.""",
                 github_token=github_token,
                 repo_name=repo_name,
-                issue_number=issue_number
+                issue_number=issue_number,
+                target_type=target_id,
+                target_id = target_id
             )
 
             return
@@ -203,7 +215,9 @@ Pull Request :
 """,
             github_token=github_token,
             repo_name=repo_name,
-            issue_number=issue_number
+            issue_number=issue_number,
+            target_type=target_id,
+            target_id=target_id
         )
 
     except Exception as ex:
@@ -229,12 +243,25 @@ Erreur :
 """,
             github_token=github_token,
             repo_name=repo_name,
-            issue_number=issue_number
+            issue_number=issue_number,
+            target_type=target_id,
+            target_id=target_id
         )
         raise
 
 
-def handle_changes_requested(issue_number, issue_title, issue_body, repo_name, github_token, grok_api_key, review_state, review_body):
+def handle_changes_requested(
+        issue_number, 
+        issue_title, 
+        issue_body, 
+        repo_name, 
+        github_token, 
+        grok_api_key, 
+        review_state, 
+        review_body,
+        target_type,
+        target_id
+        ):
 
     current_state = get_current_state(
         repo_name=repo_name, 
@@ -307,7 +334,9 @@ La réponse ne se termine pas par une accolade fermante.
 """,
                 github_token=github_token,
                 repo_name=repo_name,
-                issue_number=issue_number
+                issue_number=issue_number,
+                target_type=target_id,
+                target_id=target_id
             )
 
             return
@@ -327,7 +356,9 @@ La réponse ne se termine pas par une accolade fermante.
                 body=f"❌ JSON invalide généré par le modèle : {str(ex)}",
                 github_token=github_token,
                 repo_name=repo_name,
-                issue_number=issue_number
+                issue_number=issue_number,
+                target_type=target_id,
+                target_id=target_id
             )
 
             return
@@ -356,7 +387,9 @@ Un nouveau commit a été poussé sur la branche associée à l'issue.
 """,
             github_token=github_token,
             repo_name=repo_name,
-            issue_number=issue_number
+            issue_number=issue_number,
+            target_type=target_id,
+            target_id=target_id
         )
 
     except Exception as ex:
@@ -382,7 +415,9 @@ Erreur :
 """,
             github_token=github_token,
             repo_name=repo_name,
-            issue_number=issue_number
+            issue_number=issue_number,
+            target_type=target_id,
+            target_id=target_id
         )
 
         raise
