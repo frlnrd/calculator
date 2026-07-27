@@ -210,7 +210,11 @@ Format :
     {{
       "path":"style.css",
       "changes":[
-        "Description précise du changement"
+        {{
+          "action":"insert_after",
+          "anchor":"texte existant",
+          "content":"nouveau contenu"
+        }}
       ]
     }}
   ]
@@ -226,12 +230,18 @@ Format :
 
 Réponds UNIQUEMENT avec un JSON valide.
 
+Format :
+
 {{
   "files":[
     {{
       "path":"style.css",
       "changes":[
-        "Description précise du changement"
+        {{
+          "action":"insert_after",
+          "anchor":"texte existant",
+          "content":"nouveau contenu"
+        }}
       ]
     }}
   ]
@@ -301,12 +311,18 @@ Ils ne doivent jamais être modifiés.
 
 Réponds UNIQUEMENT avec un JSON valide.
 
+Format :
+
 {{
   "files":[
     {{
       "path":"style.css",
       "changes":[
-        "Description précise du changement"
+        {{
+          "action":"insert_after",
+          "anchor":"texte existant",
+          "content":"nouveau contenu"
+        }}
       ]
     }}
   ]
