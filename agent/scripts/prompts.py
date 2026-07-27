@@ -206,10 +206,12 @@ Ils ne doivent jamais être modifiés.
 Format :
 
 {{
-  "files": [
+  "files":[
     {{
-      "path": "style.css",
-      "content": "contenu complet"
+      "path":"style.css",
+      "changes":[
+        "Description précise du changement"
+      ]
     }}
   ]
 }}
@@ -224,16 +226,16 @@ Format :
 
 Réponds UNIQUEMENT avec un JSON valide.
 
-{
+{{
   "files":[
-    {
+    {{
       "path":"style.css",
       "changes":[
         "Description précise du changement"
       ]
-    }
+    }}
   ]
-}
+}}
 """
 
 IMPLEMENTATION_PR_PROMPT = """
@@ -299,14 +301,14 @@ Ils ne doivent jamais être modifiés.
 
 Réponds UNIQUEMENT avec un JSON valide.
 
-{
+{{
   "files":[
-    {
+    {{
       "path":"style.css",
       "changes":[
         "Description précise du changement"
       ]
-    }
+    }}
   ]
-}
+}}
 """
