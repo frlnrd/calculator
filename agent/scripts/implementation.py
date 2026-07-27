@@ -36,7 +36,7 @@ def generate_implementation(
     analysis,
     code_context,
     grok_api_key,
-    repo_name
+    repo_name,
 ):
 
     prompt = IMPLEMENTATION_PROMPT.format(
@@ -108,7 +108,9 @@ L'approbation n'est possible que depuis :
         analysis = get_latest_agent_analysis(
             repo_name=repo_name, 
             issue_number=issue_number, 
-            github_token=github_token
+            github_token=github_token,
+            target_type=target_type,
+            target_id=target_id
             )
 
         if not analysis:
@@ -286,7 +288,9 @@ def handle_changes_requested(
         analysis = get_latest_agent_analysis(
             repo_name=repo_name, 
             issue_number=issue_number, 
-            github_token=github_token
+            github_token=github_token,
+            target_type=target_type,
+            target_id=target_id
             )
 
         selected_files = select_files(

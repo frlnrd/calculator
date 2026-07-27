@@ -19,12 +19,14 @@ from scripts.state_utils import (
     set_state
 )
 
-def build_comments_context(repo_name, issue_number, github_token):
+def build_comments_context(repo_name, issue_number, github_token, target_type, target_id):
 
     comments = get_issue_comments(
         repo_name=repo_name,
         issue_number=issue_number,
-        github_token=github_token
+        github_token=github_token,
+        target_type=target_type,
+        target_id=target_id
     )
 
     context = ""
@@ -74,7 +76,9 @@ def analyse_request(
     comments_context = build_comments_context(
         repo_name=repo_name,
         issue_number=issue_number,
-        github_token=github_token
+        github_token=github_token,
+        target_type=target_type,
+        target_id=target_id
     )
 
     analysis_prompt = ANALYSIS_PROMPT.format(
@@ -189,12 +193,14 @@ Commentaire :
     )
 
 
-def get_latest_agent_analysis(repo_name, issue_number, github_token):
+def get_latest_agent_analysis(repo_name, issue_number, github_token, target_type, target_id):
 
     comments = get_issue_comments(
         repo_name=repo_name,
         issue_number=issue_number,
-        github_token=github_token
+        github_token=github_token,
+        target_type=target_type,
+        target_id=target_id
     )
 
     for comment in reversed(comments):

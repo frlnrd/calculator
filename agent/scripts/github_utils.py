@@ -17,6 +17,8 @@ def publish_comment(
     target_id
 ):
 
+    print(f"=== TARGET TYPE = {target_type} ===")
+    print(f"=== TARGET ID = {target_id} ===")
     if target_type not in TARGET_TYPES:
         raise Exception(
             f"Type de cible inconnu : {target_type}"
