@@ -89,7 +89,7 @@ function calculate() {
 // Initialize display
 display.value = '0';
 
-// Keyboard support
+// Keyboard support (existing logic)
 document.addEventListener('keydown', (e) => {
     if (e.key >= '0' && e.key <= '9') {
         appendNumber(e.key);
@@ -105,4 +105,68 @@ document.addEventListener('keydown', (e) => {
     } else if (e.key === 'Escape') {
         clearDisplay();
     }
+});
+
+/* -----------------------------------------------------------------
+   Mapping clavier → bouton de la calculatrice.
+   ----------------------------------------------------------------- */
+const keyToButton = {
+    '0': '0',
+    '1': '1',
+    '2': '2',
+    '3': '3',
+    '4': '4',
+    '5': '5',
+    '6': '6',
+    '7': '7',
+    '8': '8',
+    '9': '9',
+    '.': '.',
+    '+': '+',
+    '-': '-',
+    '*': 'x',          // le bouton affiche « x » pour l’opérateur *
+    '/': '÷',          // le bouton affiche « ÷ » pour l’opérateur /
+    'Enter': '=',      // bouton égal
+    '=': '=',          // même bouton pour la touche « = » du pavé numérique
+    'Backspace': 'DEL',
+    'Escape': 'C'
+};
+
+/**
+ * Retourne le bouton DOM correspondant à la touche pressée.
+ * @param {string} key - e.key
+ * @returns {HTMLButtonElement|null}
+ */
+function getButtonByKey(key) {
+    const label = keyToButton[key];
+    if (!label) return null;
+
+    const buttons = document.querySelectorAll('.buttons .btn');
+    for (const btn of buttons) {
+        if (btn.textContent.trim() === label) {
+            return btn;
+        }
+    }
+    return null;
+}
+
+function addKeyActive(btn) {
+    if (btn) btn.classList.add('key-active');
+}
+
+function removeKeyActive(btn) {
+    if (btn) btn.classList.remove('key-active');
+}
+
+/* -----------------------------------------------------------------
+   Gestion du visuel pendant la pression d’une touche.
+   ----------------------------------------------------------------- */
+document.addEventListener('keydown', (e) => {
+    const btn = getButtonByKey(e.key);
+    addKeyActive(btn);
+});
+
+document.addEventListener('keyup', (e) => {
+    const btn = getButtonByKey(e.key);
+    removeKeyActive(btn);
 });
