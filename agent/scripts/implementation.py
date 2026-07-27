@@ -53,6 +53,15 @@ def generate_implementation(
     try:
         print("=== GENERATED IMPLEMENTATION RAW ===")
         print(response)
+        print("=== RESPONSE LENGTH ===")
+        print(len(response))
+        print("=== RESPONSE TAIL ===")
+        print(response[-500:])
+        response = response.strip()
+        if not response.endswith("}"):
+            raise Exception(
+                "Réponse du LLM tronquée"
+            )
         return json.loads(response)
     except Exception as ex:
         print("=== JSON ERROR ===")

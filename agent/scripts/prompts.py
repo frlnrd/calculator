@@ -286,14 +286,14 @@ Ils ne doivent jamais être modifiés.
 
 Réponds UNIQUEMENT avec un JSON valide.
 
-Format :
-
-{{
-  "files": [
-    {{
-      "path": "style.css",
-      "content": "..."
-    }}
+{
+  "files":[
+    {
+      "path":"style.css",
+      "changes":[
+        "Description précise du changement"
+      ]
+    }
   ]
-}}
+}
 """
