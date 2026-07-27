@@ -82,6 +82,16 @@ body {
 }
 
 /* ----- Couleurs spécifiques ----- */
+
+/* -------------------------------------------------
+   Classe appliquée depuis le script pour reproduire
+   le même rendu que le :hover sur les boutons.
+   ------------------------------------------------- */
+.btn.key-active {
+    background: #e0e0e0;          /* même couleur que .btn:hover */
+    transform: translateY(-2px);  /* même translation que .btn:hover */
+}
+
 .function-btn {
     background: #667eea;
     color: white;
