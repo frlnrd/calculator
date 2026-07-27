@@ -221,6 +221,19 @@ Format :
 === CODE ===
 
 {code_context}
+
+Réponds UNIQUEMENT avec un JSON valide.
+
+{
+  "files":[
+    {
+      "path":"style.css",
+      "changes":[
+        "Description précise du changement"
+      ]
+    }
+  ]
+}
 """
 
 IMPLEMENTATION_PR_PROMPT = """
