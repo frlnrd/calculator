@@ -131,17 +131,97 @@ def select_files(issue_title, issue_body, grok_api_key, repo_name):
 
 def apply_changes(changes):
 
-    files = changes.get("files", [])
-
-    for file in files:
+    for file in changes["files"]:
 
         path = file["path"]
-        if path.endswith(".pyc"):
-            raise Exception(
-                f"Modification interdite : {path}"
-            )
+
         validate_path(path)
-        content = file["content"]
+
+        with open(
+            path,
+            "r",
+            encoding="utf-8"
+        ) as f:
+
+            content = f.read()
+
+        for change in file["changes"]:
+
+            action = change["action"]
+
+            if action == "append":
+
+                content += (
+                    "\n"
+                    + change["content"]
+                )
+
+            elif action == "insert_after":
+
+                anchor = change["anchor"]
+
+                occurrences = content.count(
+                    anchor
+                )
+
+                if occurrences == 0:
+
+                    raise Exception(
+                        f"Ancre introuvable : "
+                        f"{anchor}"
+                    )
+
+                if occurrences > 1:
+
+                    raise Exception(
+                        f"Ancre non unique : "
+                        f"{anchor}"
+                    )
+
+                index = content.find(anchor)
+
+                if index == -1:
+
+                    raise Exception(
+                        f"Ancre introuvable : "
+                        f"{anchor}"
+                    )
+
+                insert_position = (
+                    index
+                    + len(anchor)
+                )
+
+                content = (
+                    content[:insert_position]
+                    + "\n"
+                    + change["content"]
+                    + content[insert_position:]
+                )
+
+            elif action == "replace":
+
+                search = change["search"]
+
+                if search not in content:
+
+                    raise Exception(
+                        f"Texte introuvable : "
+                        f"{search}"
+                    )
+
+                content = content.replace(
+                    search,
+                    change["replace"],
+                    1
+                )
+
+            else:
+
+                raise Exception(
+                    f"Action inconnue : "
+                    f"{action}"
+                )
 
         with open(
             path,
@@ -150,5 +230,3 @@ def apply_changes(changes):
         ) as f:
 
             f.write(content)
-
-        print(f"=== WRITE {path} ===")

@@ -246,6 +246,12 @@ Format :
     }}
   ]
 }}
+
+Pour les actions "insert_after",
+l'ancre doit être unique dans le fichier.
+
+Si plusieurs occurrences existent,
+choisis une ancre plus spécifique.
 """
 
 IMPLEMENTATION_PR_PROMPT = """
@@ -327,4 +333,10 @@ Format :
     }}
   ]
 }}
+
+Pour les actions "insert_after",
+l'ancre doit être unique dans le fichier.
+
+Si plusieurs occurrences existent,
+choisis une ancre plus spécifique.
 """
