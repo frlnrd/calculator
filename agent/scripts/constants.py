@@ -16,3 +16,7 @@ PROTECTED_FILES = {
     "SECURITY.MD",
     "requirements.txt"
 }
+TARGET_TYPES = [
+    "issue",
+    "pull_request"
+]

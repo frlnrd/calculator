@@ -1,5 +1,7 @@
 import requests
 
+from scripts.constants import TARGET_TYPES
+
 def get_headers(github_token):
     return {
         "Authorization": f"Bearer {github_token}",
@@ -15,10 +17,7 @@ def publish_comment(
     target_id
 ):
 
-    if target_type not in [
-        "issue",
-        "pull_request"
-    ]:
+    if target_type not in TARGET_TYPES:
         raise Exception(
             f"Type de cible inconnu : {target_type}"
         )

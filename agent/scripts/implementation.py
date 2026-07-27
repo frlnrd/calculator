@@ -117,7 +117,6 @@ L'approbation n'est possible que depuis :
                 body=f"""❌ Impossible de trouver une analyse à implémenter.""",
                 github_token=github_token,
                 repo_name=repo_name,
-                issue_number=issue_number,
                 target_type=target_id,
                 target_id = target_id
             )
@@ -215,7 +214,6 @@ Pull Request :
 """,
             github_token=github_token,
             repo_name=repo_name,
-            issue_number=issue_number,
             target_type=target_id,
             target_id=target_id
         )
@@ -243,7 +241,6 @@ Erreur :
 """,
             github_token=github_token,
             repo_name=repo_name,
-            issue_number=issue_number,
             target_type=target_id,
             target_id=target_id
         )
@@ -334,7 +331,6 @@ La réponse ne se termine pas par une accolade fermante.
 """,
                 github_token=github_token,
                 repo_name=repo_name,
-                issue_number=issue_number,
                 target_type=target_id,
                 target_id=target_id
             )
@@ -356,7 +352,6 @@ La réponse ne se termine pas par une accolade fermante.
                 body=f"❌ JSON invalide généré par le modèle : {str(ex)}",
                 github_token=github_token,
                 repo_name=repo_name,
-                issue_number=issue_number,
                 target_type=target_id,
                 target_id=target_id
             )
@@ -387,7 +382,6 @@ Un nouveau commit a été poussé sur la branche associée à l'issue.
 """,
             github_token=github_token,
             repo_name=repo_name,
-            issue_number=issue_number,
             target_type=target_id,
             target_id=target_id
         )
@@ -415,7 +409,6 @@ Erreur :
 """,
             github_token=github_token,
             repo_name=repo_name,
-            issue_number=issue_number,
             target_type=target_id,
             target_id=target_id
         )
