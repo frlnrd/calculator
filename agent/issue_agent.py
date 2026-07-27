@@ -45,6 +45,8 @@ if EVENT_NAME in [
 
 def main():
 
+    global ISSUE_NUMBER
+
     context = AgentContext(
         repo_name=REPO_NAME,
 
