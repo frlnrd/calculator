@@ -78,11 +78,9 @@ def remove_label(
     print(response.status_code)
 
 
-def get_issue_comments(
+def get_target_comments(
     repo_name,
-    issue_number,
     github_token,
-    target_type,
     target_id
 ):
     response = requests.get(
@@ -116,7 +114,11 @@ def get_current_labels(
     ]
 
 
-def create_branch(github_token, repo_name, issue_number):
+def create_branch(
+    repo_name, 
+    github_token, 
+    issue_number
+):
 
     headers = get_headers(github_token)
 
@@ -219,48 +221,3 @@ def assign_pull_request(pr_number, repo_name, github_token):
         }
     )
     response.raise_for_status()
-
-
-def get_issue_number_from_pr(repo_name, pr_number, github_token):
-
-    response = requests.get(
-        f"https://api.github.com/repos/{repo_name}/pulls/{pr_number}",
-        headers=get_headers(github_token),
-        timeout=30
-    )
-
-    response.raise_for_status()
-
-    branch_name = response.json()["head"]["ref"]
-
-    print("=== PR BRANCH ===")
-    print(branch_name)
-
-    if not branch_name.startswith(
-        "agent/issue-"
-    ):
-        raise Exception(
-            f"Branche invalide : {branch_name}"
-        )
-
-    return branch_name.replace(
-        "agent/issue-",
-        ""
-    )
-
-
-def resolve_issue_number(issue_number, event_name, repo_name, pr_number, github_token):
-
-    if issue_number:
-        return issue_number
-
-    if event_name == "pull_request_review":
-        return get_issue_number_from_pr(
-            repo_name=repo_name,
-            pr_number=pr_number,
-            github_token=github_token
-        )
-
-    return issue_number
-
-

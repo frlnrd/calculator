@@ -108,6 +108,12 @@ Les fichiers suivants sont protégés :
 
 Ils ne doivent jamais être modifiés.
 
+Le plan d'action doit toujours se terminer par :
+
+"Commit les changements avec un message explicite, par exemple :"
+
+suivi d'un message de commit unique.
+
 === ISSUE ===
 
 Titre :

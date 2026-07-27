@@ -32,7 +32,7 @@ def checkout_branch(branch_name):
 
     print(f"=== CHECKOUT {branch_name} ===")
 
-def commit_changes(issue_number):
+def commit_changes(commit_message):
 
     import subprocess
 
@@ -66,7 +66,7 @@ def commit_changes(issue_number):
             "git",
             "commit",
             "-m",
-            f"Agent implementation for issue #{issue_number}"
+            commit_message
         ],
         check=True
     )

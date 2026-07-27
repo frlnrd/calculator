@@ -7,7 +7,7 @@ from scripts.prompts import (
 from scripts.llm_utils import (
     call_llm
 )
-from scripts.analysis import build_review_context
+from scripts.analysis import build_review_context, extract_commit_message
 from scripts.state_utils import (
     set_state,
     get_current_state
@@ -62,21 +62,12 @@ def generate_implementation(
         raise
 
 
-def approve_issue(
-        github_token, 
-        repo_name, 
-        issue_number, 
-        issue_title, 
-        issue_body, 
-        grok_api_key, 
-        target_type, 
-        target_id
-        ):
+def approve_issue(context):
 
     current_state = get_current_state(
-        repo_name=repo_name,
-        issue_number=issue_number,
-        github_token=github_token
+        repo_name=context.repo_name,
+        issue_number=context.issue_number,
+        github_token=context.github_token
     )
 
     if current_state not in [
@@ -95,10 +86,10 @@ L'approbation n'est possible que depuis :
 
 `agent:waiting-approval`
 """, 
-            github_token=github_token,
-            repo_name=repo_name,
-            target_type=target_type,
-            target_id=target_id
+            github_token=context.github_token,
+            repo_name=context.repo_name,
+            target_type=context.target_type,
+            target_id=context.target_id
         )
         return
     try:
@@ -106,21 +97,29 @@ L'approbation n'est possible que depuis :
         # Analyse validée
         #
         analysis = get_latest_agent_analysis(
-            repo_name=repo_name, 
-            issue_number=issue_number, 
-            github_token=github_token,
-            target_type=target_type,
-            target_id=target_id
+            repo_name=context.repo_name, 
+            github_token=context.github_token,
+            target_id=context.target_id
+            )
+
+        commit_message = extract_commit_message(
+            analysis
+        )
+
+        if not commit_message:
+
+            commit_message = (
+                f"Agent implementation for issue #{context.issue_number}"
             )
 
         if not analysis:
 
             publish_comment(
                 body=f"""❌ Impossible de trouver une analyse à implémenter.""",
-                github_token=github_token,
-                repo_name=repo_name,
-                target_type=target_type,
-                target_id = target_id
+                github_token=context.github_token,
+                repo_name=context.repo_name,
+                target_type=context.target_type,
+                target_id=context.target_id
             )
 
             return
@@ -128,27 +127,27 @@ L'approbation n'est possible que depuis :
         # Branche
         #
         branch_name = create_branch(
-            github_token=github_token, 
-            repo_name=repo_name, 
-            issue_number=issue_number
+            github_token=context.github_token, 
+            repo_name=context.repo_name, 
+            issue_number=context.issue_number
             )
         checkout_branch(
             branch_name=branch_name
         )
         set_state(
             new_state="agent:implementing",
-            repo_name=repo_name,
-            issue_number=issue_number,
-            github_token=github_token
+            repo_name=context.repo_name,
+            issue_number=context.issue_number,
+            github_token=context.github_token
         )
         #
         # Code source
         #
         selected_files = select_files(
-            issue_title=issue_title,
-            issue_body=issue_body,
-            grok_api_key=grok_api_key,
-            repo_name=repo_name
+            issue_title=context.issue_title,
+            issue_body=context.issue_body,
+            grok_api_key=context.grok_api_key,
+            repo_name=context.repo_name
         )
         code_context = load_files(
             file_list=selected_files
@@ -159,8 +158,8 @@ L'approbation n'est possible que depuis :
         changes = generate_implementation(
             analysis=analysis,
             code_context=code_context,
-            grok_api_key=grok_api_key,
-            repo_name=repo_name
+            grok_api_key=context.grok_api_key,
+            repo_name=context.repo_name
         )
         #
         # Ecriture des fichiers
@@ -171,7 +170,7 @@ L'approbation n'est possible que depuis :
         #
         # Commit
         #
-        commit_changes(issue_number=issue_number)
+        commit_changes(commit_message=commit_message)
         #
         # Push
         #
@@ -183,21 +182,21 @@ L'approbation n'est possible que depuis :
         #
         pr = create_pull_request(
             branch_name=branch_name,
-            repo_name=repo_name,
-            github_token=github_token,
-            issue_number=issue_number
+            repo_name=context.repo_name,
+            github_token=context.github_token,
+            issue_number=context.issue_number
         )
         assign_pull_request(
             pr_number=pr["number"],
-            repo_name=repo_name,
-            github_token=github_token
+            repo_name=context.repo_name,
+            github_token=context.github_token
         )
         pr_url = pr["html_url"]
         set_state(
             new_state="agent:waiting-review",
-            repo_name=repo_name,
-            issue_number=issue_number,
-            github_token=github_token
+            repo_name=context.repo_name,
+            issue_number=context.issue_number,
+            github_token=context.github_token
         )
         publish_comment(
             body=f"""✅ Implémentation terminée.
@@ -214,19 +213,19 @@ Pull Request :
 
 `agent:waiting-review`
 """,
-            github_token=github_token,
-            repo_name=repo_name,
-            target_type=target_type,
-            target_id=target_id
+            github_token=context.github_token,
+            repo_name=context.repo_name,
+            target_type=context.target_type,
+            target_id=context.target_id
         )
 
     except Exception as ex:
 
         set_state(
             new_state="agent:failed",
-            repo_name=repo_name,
-            issue_number=issue_number,
-            github_token=github_token
+            repo_name=context.repo_name,
+            issue_number=context.issue_number,
+            github_token=context.github_token
         )
 
         publish_comment(
@@ -241,38 +240,27 @@ Erreur :
 ```text
 {str(ex)}
 """,
-            github_token=github_token,
-            repo_name=repo_name,
-            target_type=target_type,
-            target_id=target_id
+            github_token=context.github_token,
+            repo_name=context.repo_name,
+            target_type=context.target_type,
+            target_id=context.target_id
         )
         raise
 
 
-def handle_changes_requested(
-        issue_number, 
-        issue_title, 
-        issue_body, 
-        repo_name, 
-        github_token, 
-        grok_api_key, 
-        review_state, 
-        review_body,
-        target_type,
-        target_id
-        ):
+def handle_changes_requested(context):
 
     current_state = get_current_state(
-        repo_name=repo_name, 
-        issue_number=issue_number, 
-        github_token=github_token
+        repo_name=context.repo_name, 
+        issue_number=context.issue_number, 
+        github_token=context.github_token
         )
 
     if current_state != "agent:waiting-review":
         return
 
     try:
-        branch_name = f"agent/issue-{issue_number}"
+        branch_name = f"agent/issue-{context.issue_number}"
 
         checkout_branch(
             branch_name=branch_name
@@ -280,24 +268,32 @@ def handle_changes_requested(
 
         set_state(
             new_state="agent:implementing",
-            repo_name=repo_name,
-            issue_number=issue_number,
-            github_token=github_token
+            repo_name=context.repo_name,
+            issue_number=context.issue_number,
+            github_token=context.github_token
         )
 
         analysis = get_latest_agent_analysis(
-            repo_name=repo_name, 
-            issue_number=issue_number, 
-            github_token=github_token,
-            target_type=target_type,
-            target_id=target_id
+            repo_name=context.repo_name, 
+            github_token=context.github_token,
+            target_id=context.target_id
+            )
+
+        commit_message = extract_commit_message(
+            analysis
+        )
+
+        if not commit_message:
+
+            commit_message = (
+                f"Agent implementation for issue #{context.issue_number}"
             )
 
         selected_files = select_files(
-            issue_title=issue_title, 
-            issue_body=issue_body, 
-            grok_api_key=grok_api_key, 
-            repo_name=repo_name
+            issue_title=context.issue_title, 
+            issue_body=context.issue_body, 
+            grok_api_key=context.grok_api_key, 
+            repo_name=context.repo_name
             )
 
         code_context = load_files(
@@ -305,8 +301,8 @@ def handle_changes_requested(
         )
 
         review_context = build_review_context(
-            review_state=review_state, 
-            review_body=review_body
+            review_state=context.review_state, 
+            review_body=context.review_body
         )
 
         implementation_pr_prompt = IMPLEMENTATION_PR_PROMPT.format(
@@ -317,8 +313,8 @@ def handle_changes_requested(
 
         response = call_llm(
             prompt=implementation_pr_prompt,
-            grok_api_key=grok_api_key,
-            repo_name=repo_name
+            grok_api_key=context.grok_api_key,
+            repo_name=context.repo_name
         )
 
         print("=== IMPLEMENTATION RAW RESPONSE ===")
@@ -333,10 +329,10 @@ def handle_changes_requested(
 
 La réponse ne se termine pas par une accolade fermante.
 """,
-                github_token=github_token,
-                repo_name=repo_name,
-                target_type=target_type,
-                target_id=target_id
+                github_token=context.github_token,
+                repo_name=context.repo_name,
+                target_type=context.target_type,
+                target_id=context.target_id
             )
 
             return
@@ -354,10 +350,10 @@ La réponse ne se termine pas par une accolade fermante.
 
             publish_comment(
                 body=f"❌ JSON invalide généré par le modèle : {str(ex)}",
-                github_token=github_token,
-                repo_name=repo_name,
-                target_type=target_type,
-                target_id=target_id
+                github_token=context.github_token,
+                repo_name=context.repo_name,
+                target_type=context.target_type,
+                target_id=context.target_id
             )
 
             return
@@ -366,7 +362,7 @@ La réponse ne se termine pas par une accolade fermante.
             changes=changes
         )
 
-        commit_changes(issue_number=issue_number)
+        commit_changes(commit_message=commit_message)
 
         push_branch(
             branch_name=branch_name
@@ -374,9 +370,9 @@ La réponse ne se termine pas par une accolade fermante.
 
         set_state(
             new_state="agent:waiting-review",
-            repo_name=repo_name,
-            issue_number=issue_number,
-            github_token=github_token
+            repo_name=context.repo_name,
+            issue_number=context.issue_number,
+            github_token=context.github_token
         )
 
         publish_comment(
@@ -384,19 +380,19 @@ La réponse ne se termine pas par une accolade fermante.
 
 Un nouveau commit a été poussé sur la branche associée à l'issue.
 """,
-            github_token=github_token,
-            repo_name=repo_name,
-            target_type=target_type,
-            target_id=target_id
+            github_token=context.github_token,
+            repo_name=context.repo_name,
+            target_type=context.target_type,
+            target_id=context.target_id
         )
 
     except Exception as ex:
 
         set_state(
             new_state="agent:failed",
-            repo_name=repo_name,
-            issue_number=issue_number,
-            github_token=github_token
+            repo_name=context.repo_name,
+            issue_number=context.issue_number,
+            github_token=context.github_token
         )
 
         publish_comment(
@@ -411,10 +407,10 @@ Erreur :
 ```text
 {str(ex)}
 """,
-            github_token=github_token,
-            repo_name=repo_name,
-            target_type=target_type,
-            target_id=target_id
+            github_token=context.github_token,
+            repo_name=context.repo_name,
+            target_type=context.target_type,
+            target_id=context.target_id
         )
 
         raise

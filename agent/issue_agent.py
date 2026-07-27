@@ -22,10 +22,7 @@ from scripts.config import (
     TARGET_TYPE,
     TARGET_ID
 )
-from scripts.github_utils import (
-    resolve_issue_number,
-    get_issue_number_from_pr
-)
+from classes.context import AgentContext
 
 print("=== EVENT ===")
 print(EVENT_NAME)
@@ -45,14 +42,21 @@ if EVENT_NAME in [
 
 def main():
 
-    global ISSUE_NUMBER
-
-    ISSUE_NUMBER = resolve_issue_number(
-        issue_number=ISSUE_NUMBER,
-        event_name=EVENT_NAME,
+    context = AgentContext(
         repo_name=REPO_NAME,
-        pr_number=PR_NUMBER,
-        github_token=GITHUB_TOKEN
+
+        issue_number=ISSUE_NUMBER,
+        issue_title=ISSUE_TITLE,
+        issue_body=ISSUE_BODY,
+
+        github_token=GITHUB_TOKEN,
+        grok_api_key=GROK_API_KEY,
+
+        review_state=REVIEW_STATE,
+        review_body=REVIEW_BODY,
+
+        target_type=TARGET_TYPE,
+        target_id=TARGET_ID
     )
 
     print("=== ISSUE NUMBER ===")
@@ -72,65 +76,25 @@ def main():
                 "agent:failed"
             ]:
 
-                approve_issue(
-                    github_token=GITHUB_TOKEN,
-                    repo_name=REPO_NAME,
-                    issue_number=ISSUE_NUMBER,
-                    issue_title=ISSUE_TITLE,
-                    issue_body=ISSUE_BODY,
-                    grok_api_key=GROK_API_KEY,
-                    target_type=TARGET_TYPE,
-                    target_id=TARGET_ID
-                )
+                approve_issue(context)
 
             elif current_state == "agent:waiting-review-approval":
 
-                handle_changes_requested(
-                    github_token=GITHUB_TOKEN,
-                    repo_name=REPO_NAME,
-                    issue_number=ISSUE_NUMBER,
-                    issue_title=ISSUE_TITLE,
-                    issue_body=ISSUE_BODY,
-                    grok_api_key=GROK_API_KEY,
-                    review_state=REVIEW_STATE,
-                    review_body=REVIEW_BODY,
-                    target_type=TARGET_TYPE,
-                    target_id=TARGET_ID
-                )
+                handle_changes_requested(context)
             else:
                 print(
                     f"/approve ignoré pour l'état : {current_state}"
                 )
         else:
-            analyse_issue(
-                issue_number=ISSUE_NUMBER,
-                issue_title=ISSUE_TITLE,
-                issue_body=ISSUE_BODY,
-                repo_name=REPO_NAME,
-                github_token=GITHUB_TOKEN,
-                grok_api_key=GROK_API_KEY,
-                target_type=TARGET_TYPE,
-                target_id=TARGET_ID
-            )
+            analyse_issue(context)
 
     elif EVENT_NAME in [
         "issues",
         "workflow_dispatch"
     ]:
 
-        analyse_issue(
-            issue_number=ISSUE_NUMBER,
-            issue_title=ISSUE_TITLE,
-            issue_body=ISSUE_BODY,
-            repo_name=REPO_NAME,
-            github_token=GITHUB_TOKEN,
-            grok_api_key=GROK_API_KEY,
-            target_type=TARGET_TYPE,
-            target_id=TARGET_ID
-        )
+        analyse_issue(context)
     elif EVENT_NAME == "pull_request_review":
-
-        ISSUE_NUMBER = get_issue_number_from_pr(REPO_NAME, PR_NUMBER, GITHUB_TOKEN)
 
         print("=== ISSUE NUMBER ===")
         print(ISSUE_NUMBER)
@@ -145,18 +109,7 @@ def main():
 
             print(f"=== CHANGES REQUESTED FOR ISSUE {ISSUE_NUMBER} ===")
 
-            analyse_review_changes(
-                issue_number=ISSUE_NUMBER,
-                issue_title=ISSUE_TITLE,
-                issue_body=ISSUE_BODY,
-                repo_name=REPO_NAME,
-                github_token=GITHUB_TOKEN,
-                grok_api_key=GROK_API_KEY,
-                review_state=REVIEW_STATE,
-                review_body=REVIEW_BODY,
-                target_type=TARGET_TYPE,
-                target_id=TARGET_ID
-            )
+            analyse_review_changes(context)
     else:
         print(
             f"Événement ignoré : {EVENT_NAME}"

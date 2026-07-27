@@ -1,3 +1,5 @@
+import re
+
 from scripts.llm_utils import (
     call_llm,
     MODEL
@@ -6,7 +8,7 @@ from scripts.file_utils import (
     load_files
 )
 from scripts.github_utils import (
-    get_issue_comments,
+    get_target_comments,
     publish_comment
 )
 from scripts.prompts import (
@@ -21,11 +23,9 @@ from scripts.state_utils import (
 
 def build_comments_context(repo_name, issue_number, github_token, target_type, target_id):
 
-    comments = get_issue_comments(
+    comments = get_target_comments(
         repo_name=repo_name,
-        issue_number=issue_number,
         github_token=github_token,
-        target_type=target_type,
         target_id=target_id
     )
 
@@ -132,74 +132,56 @@ Pour lancer l'implémentation :
     )
 
 
-def analyse_issue(
-    issue_number,
-    issue_title,
-    issue_body,
-    repo_name,
-    github_token,
-    grok_api_key,
-    target_type,
-    target_id
-):
+def analyse_issue(context):
 
     analyse_request(
-        issue_number=issue_number,
-        issue_title=issue_title,
-        issue_body=issue_body,
-        repo_name=repo_name,
-        github_token=github_token,
-        grok_api_key=grok_api_key,
-        target_type=target_type,
-        target_id=target_id
+        issue_number=context.issue_number,
+        issue_title=context.issue_title,
+        issue_body=context.issue_body,
+        repo_name=context.repo_name,
+        github_token=context.github_token,
+        grok_api_key=context.grok_api_key,
+        target_type=context.target_type,
+        target_id=context.target_id
     )
 
 
-def analyse_review_changes(
-    issue_number,
-    issue_title,
-    issue_body,
-    repo_name,
-    github_token,
-    grok_api_key,
-    review_state,
-    review_body,
-    target_type,
-    target_id
-):
+def analyse_review_changes(context):
 
     analyse_request(
-        issue_number=issue_number,
-        issue_title=issue_title,
-        issue_body=issue_body,
-        repo_name=repo_name,
-        github_token=github_token,
-        grok_api_key=grok_api_key,
+        issue_number=context.issue_number,
+        issue_title=context.issue_title,
+        issue_body=context.issue_body,
+        repo_name=context.repo_name,
+        github_token=context.github_token,
+        grok_api_key=context.grok_api_key,
         additional_context=f"""
 === REVIEW CHANGES REQUESTED ===
 
 Etat :
 
-{review_state}
+{context.review_state}
 
 Commentaire :
 
-{review_body}
+{context.review_body}
 """,
         target_state="agent:waiting-review-approval",
         analysis_title="## 🤖 Analyse des changements demandés",
-        target_type=target_type,
-        target_id=target_id
+        target_type=context.target_type,
+        target_id=context.target_id
     )
 
 
-def get_latest_agent_analysis(repo_name, issue_number, github_token, target_type, target_id):
+def get_latest_agent_analysis(
+    repo_name, 
+    github_token, 
+    target_id
+):
 
-    comments = get_issue_comments(
+    comments = get_target_comments(
         repo_name=repo_name,
-        issue_number=issue_number,
         github_token=github_token,
-        target_type=target_type,
         target_id=target_id
     )
 
@@ -231,3 +213,15 @@ Commentaire du reviewer :
 """
 
 
+def extract_commit_message(analysis):
+
+    match = re.search(
+        r"Commit les changements avec un message explicite.*?:\s*\n\s*(.+)",
+        analysis,
+        re.IGNORECASE | re.DOTALL
+    )
+
+    if not match:
+        return None
+
+    return match.group(1).strip()
