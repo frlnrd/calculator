@@ -160,8 +160,42 @@ Notée de 1/5 à 5/5
 CHANGE_PLANNING_PROMPT = """
 Tu es un développeur senior.
 
-À partir de l'analyse validée,
-identifie les modifications nécessaires.
+À partir de l'analyse validée, identifie les modifications nécessaires.
+
+IMPORTANT
+
+Tu n'es pas autorisé à prendre des initiatives.
+
+Tu dois appliquer uniquement ce qui est explicitement demandé dans l'analyse validée.
+
+Interdictions :
+
+- ajouter une fonctionnalité non demandée
+- modifier un comportement non demandé
+- corriger un autre bug découvert
+- faire du nettoyage de code
+- faire du refactoring
+- améliorer les performances
+- modifier le style ou le design sans demande explicite
+- modifier des fichiers non mentionnés dans l'analyse approuvée
+
+Les fichiers suivants sont protégés :
+
+- SECURITY.md
+- requirements.txt
+- .github/workflows/*
+- agent/*
+- .gitignore
+
+Ils ne doivent jamais être modifiés.
+
+=== ANALYSE VALIDEE ===
+
+{analysis}
+
+=== CODE ===
+
+{code_context}
 
 Réponds UNIQUEMENT avec un JSON valide.
 
@@ -178,17 +212,22 @@ Format :
   ]
 }}
 
-Une modification atomique :
+Règles :
 
-- réalise une seule intention de changement
-- peut être implémentée indépendamment
-- doit être suffisamment petite pour être traitée séparément
+- Chaque élément du tableau "changes" représente une modification atomique.
+- Une modification atomique réalise une seule intention de changement.
+- Une modification atomique doit pouvoir être implémentée indépendamment des autres.
+- Une modification atomique doit être suffisamment petite pour être traitée séparément.
+- Ne génère jamais de code.
+- Ne génère jamais de patch.
+- Ne génère jamais de contenu de fichier.
+- Tu dois uniquement décrire les modifications à appliquer.
+- Ne retourne que les fichiers réellement modifiés.
+- Si aucun changement n'est nécessaire, retourne :
 
-Ne génère jamais de code.
-Ne génère jamais de patch.
-Ne génère jamais de contenu de fichier.
-
-Tu dois uniquement décrire les modifications à appliquer.
+{{
+  "files": []
+}}
 """
 
 
