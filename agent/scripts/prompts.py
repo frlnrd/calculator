@@ -34,6 +34,7 @@ Exemple :
 ["style.css", "index.html"]
 """
 
+
 ANALYSIS_PROMPT = """
 Tu es un ingénieur logiciel senior.
 
@@ -155,6 +156,7 @@ Notée de 1/5 à 5/5
 ## Plan d'action
 """
 
+
 IMPLEMENTATION_PROMPT = """
 Tu es un développeur senior.
 
@@ -203,56 +205,35 @@ Les fichiers suivants sont protégés :
 
 Ils ne doivent jamais être modifiés.
 
-Format :
-
-{{
-  "files":[
-    {{
-      "path":"style.css",
-      "changes":[
-        {{
-          "action":"insert_after",
-          "anchor":"texte existant",
-          "content":"nouveau contenu"
-        }}
-      ]
-    }}
-  ]
-}}
-
-=== ANALYSE VALIDEE ===
-
-{analysis}
-
-=== CODE ===
-
-{code_context}
-
 Réponds UNIQUEMENT avec un JSON valide.
 
 Format :
 
 {{
-  "files":[
+  "files": [
     {{
-      "path":"style.css",
-      "changes":[
-        {{
-          "action":"insert_after",
-          "anchor":"texte existant",
-          "content":"nouveau contenu"
-        }}
+      "path": "style.css",
+      "changes": [
+        "Description précise du changement à appliquer"
       ]
     }}
   ]
 }}
 
-Pour les actions "insert_after",
-l'ancre doit être unique dans le fichier.
+Chaque élément du tableau "changes" représente une modification atomique.
 
-Si plusieurs occurrences existent,
-choisis une ancre plus spécifique.
+Une modification atomique :
+- réalise une seule intention de changement
+- peut être implémentée indépendamment des autres
+- doit être suffisamment petite pour être traitée séparément
+
+Ne génère jamais de code à ce stade.
+Ne génère jamais de patch.
+Ne génère jamais de contenu de fichier.
+
+Tu dois uniquement décrire les changements à appliquer.
 """
+
 
 IMPLEMENTATION_PR_PROMPT = """
 Tu es un développeur senior.
@@ -320,23 +301,52 @@ Réponds UNIQUEMENT avec un JSON valide.
 Format :
 
 {{
-  "files":[
+  "files": [
     {{
-      "path":"style.css",
-      "changes":[
-        {{
-          "action":"insert_after",
-          "anchor":"texte existant",
-          "content":"nouveau contenu"
-        }}
+      "path": "style.css",
+      "changes": [
+        "Description précise du changement à appliquer"
       ]
     }}
   ]
 }}
 
-Pour les actions "insert_after",
-l'ancre doit être unique dans le fichier.
+Chaque élément du tableau "changes" représente une modification atomique.
 
-Si plusieurs occurrences existent,
-choisis une ancre plus spécifique.
+Une modification atomique :
+- réalise une seule intention de changement
+- peut être implémentée indépendamment des autres
+- doit être suffisamment petite pour être traitée séparément
+
+Ne génère jamais de code à ce stade.
+Ne génère jamais de patch.
+Ne génère jamais de contenu de fichier.
+
+Tu dois uniquement décrire les changements à appliquer.
+"""
+
+
+IMPLEMENT_CHANGE_PROMPT = """
+Tu es un développeur senior.
+
+Tu dois implémenter UNE SEULE modification.
+
+=== FICHIER ===
+
+{file_content}
+
+=== MODIFICATION ===
+
+{change_description}
+
+IMPORTANT
+
+- Ne modifie que ce qui est nécessaire.
+- Conserve le reste du fichier à l'identique.
+- Renvoie exclusivement le contenu complet du fichier modifié.
+- Maximum 300 lignes par réponse.
+- Si le contenu dépasse cette limite, envoie autant de réponses que nécessaire pour transmettre tout le contenu du fichier.
+- Lorsque tout le contenu a été envoyé, envoie une dernière réponse contenant uniquement :
+
+<<<END_OF_RESPONSE>>>
 """

@@ -5,8 +5,12 @@ from scripts.constants import (
     PROTECTED_PATHS,
     PROTECTED_FILES
 )
-from scripts.prompts import FILE_SELECTION_PROMPT
+from scripts.prompts import (
+    FILE_SELECTION_PROMPT, 
+    IMPLEMENT_CHANGE_PROMPT
+)
 from scripts.llm_utils import call_llm
+from classes.change_context import ChangeContext
 
 def validate_path(path):
 
@@ -129,104 +133,95 @@ def select_files(issue_title, issue_body, grok_api_key, repo_name):
         return []
 
 
-def apply_changes(changes):
+def apply_changes(
+    changes,
+    context
+):
 
-    for file in changes["files"]:
+    for file_change in changes["files"]:
 
-        path = file["path"]
+        path = file_change["path"]
 
         validate_path(path)
 
-        with open(
-            path,
-            "r",
-            encoding="utf-8"
-        ) as f:
+        current_content = load_file(
+            path=path
+        )
 
-            content = f.read()
+        for change in file_change["changes"]:
 
-        for change in file["changes"]:
-
-            action = change["action"]
-
-            if action == "append":
-
-                content += (
-                    "\n"
-                    + change["content"]
+            change_context = (
+                ChangeContext(
+                    path=path,
+                    file_content=current_content,
+                    change_description=change,
+                    repo_name=context.repo_name,
+                    grok_api_key=context.grok_api_key
                 )
+            )
 
-            elif action == "insert_after":
+            current_content = implement_change(
+                change_context
+            )
 
-                anchor = change["anchor"]
+        save_file(
+            path=path,
+            content=current_content
+        )
 
-                occurrences = content.count(
-                    anchor
-                )
 
-                if occurrences == 0:
+def load_file(path):
 
-                    raise Exception(
-                        f"Ancre introuvable : "
-                        f"{anchor}"
-                    )
+    validate_path(path)
 
-                if occurrences > 1:
+    with open(
+        path,
+        "r",
+        encoding="utf-8"
+    ) as file:
 
-                    raise Exception(
-                        f"Ancre non unique : "
-                        f"{anchor}"
-                    )
+        return file.read()
 
-                index = content.find(anchor)
 
-                if index == -1:
+def save_file(path, content):
 
-                    raise Exception(
-                        f"Ancre introuvable : "
-                        f"{anchor}"
-                    )
+    validate_path(path)
 
-                insert_position = (
-                    index
-                    + len(anchor)
-                )
+    with open(
+        path,
+        "w",
+        encoding="utf-8"
+    ) as file:
 
-                content = (
-                    content[:insert_position]
-                    + "\n"
-                    + change["content"]
-                    + content[insert_position:]
-                )
+        file.write(content)
 
-            elif action == "replace":
+def implement_change(change_context):
 
-                search = change["search"]
+    prompt = IMPLEMENT_CHANGE_PROMPT.format(
+        file_content=change_context.file_content,
+        change_description=change_context.change_description
+    )
 
-                if search not in content:
+    content = ""
 
-                    raise Exception(
-                        f"Texte introuvable : "
-                        f"{search}"
-                    )
+    while True:
 
-                content = content.replace(
-                    search,
-                    change["replace"],
-                    1
-                )
+        response = call_llm(
+            prompt=prompt,
+            grok_api_key=change_context.grok_api_key,
+            repo_name=change_context.repo_name
+        )
 
-            else:
+        response = response.strip()
 
-                raise Exception(
-                    f"Action inconnue : "
-                    f"{action}"
-                )
+        print("=== IMPLEMENT CHANGE RESPONSE ===")
+        print(response)
 
-        with open(
-            path,
-            "w",
-            encoding="utf-8"
-        ) as f:
+        if response == change_context.end_marker:
+            break
 
-            f.write(content)
+        content += response
+        print("=== CURRENT CONTENT LENGTH ===")
+        print(len(content))
+
+    return content

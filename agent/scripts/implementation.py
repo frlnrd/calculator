@@ -55,8 +55,12 @@ def generate_implementation(
         print(response)
         print("=== RESPONSE LENGTH ===")
         print(len(response))
+        print("=== RESPONSE HEAD ===")
+        print(response[:500])
+
         print("=== RESPONSE TAIL ===")
         print(response[-500:])
+
         response = response.strip()
         if not response.endswith("}"):
             raise Exception(
