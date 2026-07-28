@@ -167,16 +167,16 @@ Réponds UNIQUEMENT avec un JSON valide.
 
 Format :
 
-{
+{{
   "files": [
-    {
+    {{
       "path": "style.css",
       "changes": [
         "Description précise d'une modification atomique"
       ]
-    }
+    }}
   ]
-}
+}}
 
 Une modification atomique :
 
