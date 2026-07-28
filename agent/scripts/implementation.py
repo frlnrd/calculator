@@ -1,8 +1,8 @@
 import json
 
 from scripts.prompts import (
-    IMPLEMENTATION_PROMPT,
-    IMPLEMENTATION_PR_PROMPT
+    CHANGE_PLANNING_PROMPT,
+    CHANGE_PLANNING_PROMPT
 )
 from scripts.llm_utils import (
     call_llm
@@ -39,7 +39,7 @@ def generate_implementation(
     repo_name,
 ):
 
-    prompt = IMPLEMENTATION_PROMPT.format(
+    prompt = CHANGE_PLANNING_PROMPT.format(
         analysis=analysis,
         code_context=code_context
     )
@@ -174,6 +174,12 @@ L'approbation n'est possible que depuis :
             grok_api_key=context.grok_api_key,
             repo_name=context.repo_name
         )
+
+        if not changes["files"]:
+            raise Exception(
+                "Aucune modification proposée par le modèle."
+            )
+
         #
         # Ecriture des fichiers
         #
@@ -319,14 +325,14 @@ def handle_changes_requested(context):
             review_body=context.review_body
         )
 
-        implementation_pr_prompt = IMPLEMENTATION_PR_PROMPT.format(
+        CHANGE_PLANNING_PROMPT = CHANGE_PLANNING_PROMPT.format(
             analysis=analysis,
             review_context=review_context,
             code_context=code_context
         )
 
         response = call_llm(
-            prompt=implementation_pr_prompt,
+            prompt=CHANGE_PLANNING_PROMPT,
             grok_api_key=context.grok_api_key,
             repo_name=context.repo_name
         )

@@ -157,172 +157,38 @@ Notée de 1/5 à 5/5
 """
 
 
-IMPLEMENTATION_PROMPT = """
+CHANGE_PLANNING_PROMPT = """
 Tu es un développeur senior.
 
-Implémente la dernière solution validée.
-
-Réponds UNIQUEMENT avec du JSON.
-
-IMPORTANT
-
-Tu n'es pas autorisé à prendre des initiatives.
-
-Tu dois implémenter uniquement ce qui est explicitement demandé dans l'analyse validée.
-
-Interdictions :
-
-- ajouter une fonctionnalité non demandée
-- modifier un comportement non demandé
-- corriger un autre bug découvert pendant l'implémentation
-- faire du nettoyage de code
-- faire du refactoring
-- améliorer les performances
-- modifier le style ou le design sans demande explicite
-- modifier des fichiers non mentionnés dans l'analyse
-
-Tu dois appliquer le changement le plus petit possible.
-
-Tu dois conserver le comportement existant partout où aucun changement n'est explicitement demandé.
-
-Ne modifie que les fichiers strictement nécessaires.
-
-Ne renvoie que les fichiers réellement modifiés.
-
-Ne réécris jamais un fichier complet lorsque seule une petite modification est nécessaire.
-
-Conserve le contenu existant autant que possible.
-
-Toute ligne non concernée par la demande doit rester inchangée.
-
-Les fichiers suivants sont protégés :
-
-- SECURITY.md
-- requirements.txt
-- .github/workflows/*
-- agent/*
-- .gitignore
-
-Ils ne doivent jamais être modifiés.
+À partir de l'analyse validée,
+identifie les modifications nécessaires.
 
 Réponds UNIQUEMENT avec un JSON valide.
 
 Format :
 
-{{
+{
   "files": [
-    {{
+    {
       "path": "style.css",
       "changes": [
-        "Description précise du changement à appliquer"
+        "Description précise d'une modification atomique"
       ]
-    }}
+    }
   ]
-}}
-
-Chaque élément du tableau "changes" représente une modification atomique.
+}
 
 Une modification atomique :
+
 - réalise une seule intention de changement
-- peut être implémentée indépendamment des autres
+- peut être implémentée indépendamment
 - doit être suffisamment petite pour être traitée séparément
 
-Ne génère jamais de code à ce stade.
+Ne génère jamais de code.
 Ne génère jamais de patch.
 Ne génère jamais de contenu de fichier.
 
-Tu dois uniquement décrire les changements à appliquer.
-"""
-
-
-IMPLEMENTATION_PR_PROMPT = """
-Tu es un développeur senior.
-
-Une Pull Request a reçu une demande de modification.
-
-Tu dois corriger l'implémentation précédente.
-
-Tu dois traiter exclusivement les remarques présentes dans la review.
-
-Tu n'es pas autorisé à faire d'autres modifications.
-
-Tu ne dois pas :
-- améliorer la solution
-- proposer une autre interface
-- corriger des problèmes non signalés
-- modifier des fichiers non concernés par la review
-
-Chaque modification doit pouvoir être reliée directement à une remarque présente dans la review.
-
-Si une modification ne répond pas directement à une remarque de la review, elle ne doit pas être réalisée.
-
-Avant de produire le JSON, vérifie mentalement que chaque fichier modifié est justifié par au moins une remarque de la review.
-
-Si un fichier n'est pas directement concerné par la review, ne le modifie pas.
-
-Pour chaque fichier modifié, tu dois être capable de répondre à la question :
-
-"Quelle remarque de la review justifie cette modification ?"
-
-Si aucune remarque ne justifie le changement, le fichier ne doit pas être modifié.
-
-IMPORTANT
-
-Ne modifie que les fichiers strictement nécessaires.
-
-Ne réécris jamais un fichier qui ne nécessite pas de modification.
-
-Ne renvoie que les fichiers réellement modifiés.
-
-Les fichiers suivants sont protégés :
-
-- SECURITY.md
-- requirements.txt
-- .github/workflows/*
-- agent/*
-- .gitignore
-
-Ils ne doivent jamais être modifiés.
-
-=== ANALYSE VALIDEE ===
-
-{analysis}
-
-=== REVIEW ===
-
-{review_context}
-
-=== CODE ===
-
-{code_context}
-
-Réponds UNIQUEMENT avec un JSON valide.
-
-Format :
-
-{{
-  "files": [
-    {{
-      "path": "style.css",
-      "changes": [
-        "Description précise du changement à appliquer"
-      ]
-    }}
-  ]
-}}
-
-Chaque élément du tableau "changes" représente une modification atomique.
-
-Une modification atomique :
-- réalise une seule intention de changement
-- peut être implémentée indépendamment des autres
-- doit être suffisamment petite pour être traitée séparément
-
-Ne génère jamais de code à ce stade.
-Ne génère jamais de patch.
-Ne génère jamais de contenu de fichier.
-
-Tu dois uniquement décrire les changements à appliquer.
+Tu dois uniquement décrire les modifications à appliquer.
 """
 
 
