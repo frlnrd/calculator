@@ -178,7 +178,8 @@ L'approbation n'est possible que depuis :
         # Ecriture des fichiers
         #
         apply_changes(
-            changes=changes
+            changes=changes,
+            context=context
         )
         #
         # Commit
@@ -372,7 +373,8 @@ La réponse ne se termine pas par une accolade fermante.
             return
 
         apply_changes(
-            changes=changes
+            changes=changes,
+            context=context
         )
 
         commit_changes(commit_message=commit_message)
