@@ -138,9 +138,9 @@ def apply_changes(
     context
 ):
 
-    for file_change in changes["files"]:
+    for patch in changes["patches"]:
 
-        path = file_change["path"]
+        path = patch["path"]
 
         validate_path(path)
 
@@ -148,7 +148,7 @@ def apply_changes(
             path=path
         )
 
-        for change in file_change["changes"]:
+        for change in patch["changes"]:
 
             change_context = (
                 ChangeContext(
@@ -156,10 +156,10 @@ def apply_changes(
                     file_content=current_content,
                     repo_name=context.repo_name,
                     grok_api_key=context.grok_api_key,
-                    change_planning=file_change["changes"],
-                    change_id=change.id,
-                    change_description=change.description,
-                    total=change.total
+                    change_planning=changes,
+                    change_id=patch["id"],
+                    change_description=patch["description"],
+                    total=patch["total"]
                 )
             )
 

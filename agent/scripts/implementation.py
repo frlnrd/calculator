@@ -175,7 +175,7 @@ L'approbation n'est possible que depuis :
             repo_name=context.repo_name
         )
 
-        if not changes["files"]:
+        if not changes["patches"]:
             raise Exception(
                 "Aucune modification proposée par le modèle."
             )
