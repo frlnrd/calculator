@@ -208,7 +208,7 @@ def implement_change(change_context):
     ):
 
         prompt = IMPLEMENT_CHANGE_PROMPT.format(
-            patch_id=change_context.patch_id,
+            patch_id=change_context.change_id,
             change_planning=change_context.change_planning,
             file_content=change_context.file_content
         )
