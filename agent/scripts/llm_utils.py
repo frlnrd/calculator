@@ -2,10 +2,12 @@ import requests
 
 from scripts.config import GROK_API_KEY, REPO_NAME
 
-#MODEL = "openai/gpt-oss-120b"
-MODEL = "openai/gpt-oss-20b"
+MODEL = "openai/gpt-oss-120b"
 
 def call_llm(prompt, grok_api_key, repo_name):
+
+    print("=== PROMPT LENGTH ===")
+    print(len(prompt))
 
     response = requests.post(
         "https://api.groq.com/openai/v1/chat/completions",

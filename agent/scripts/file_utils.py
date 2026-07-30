@@ -217,6 +217,8 @@ def implement_change(change_context):
         print("=== IMPLEMENT CHANGE RESPONSE ===")
         print(response)
 
+        print(repr(response))
+        print(repr(change_context.end_marker))
         if response == change_context.end_marker:
             break
 
