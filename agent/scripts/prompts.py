@@ -205,13 +205,11 @@ Format :
   "patches": [
     {{
       "id": 1,
-      "total": 8,
       "path": "style.css",
       "description": "Ajouter .btn.key-active"
     }},
     {{
       "id": 2,
-      "total": 8,
       "path": "script.js",
       "description": "Ajouter keyToButton"
     }}
@@ -244,21 +242,18 @@ Si aucun changement n'est nécessaire :
 IMPLEMENT_CHANGE_PROMPT = """
 Tu es un développeur senior.
 
-Tu dois implémenter le patch {patch_id}
-parmi les patches décrits ci-dessous.
-
-=== CHANGE PLANNING ===
-
-{change_planning}
+Tu dois implémenter le patch {patch_id}.
 
 === FICHIER ===
 
-{file_content}
+{path}
+
+=== MODIFICATION ===
+
+{change_description}
 
 IMPORTANT
 
-- Implémente uniquement le patch {patch_id}.
-- Ignore tous les autres patches.
 - Ne modifie que ce qui est nécessaire.
 - Il ne doit y avoir qu'une seule modification logique dans ta réponse.
 - Conserve le reste du fichier à l'identique.

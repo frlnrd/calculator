@@ -144,30 +144,28 @@ def apply_changes(
 
         validate_path(path)
 
-        current_content = load_file(
+        patch_content = load_file(
             path=path
         )
 
         change_context = (
             ChangeContext(
-                path=path,
-                file_content=current_content,
                 repo_name=context.repo_name,
                 grok_api_key=context.grok_api_key,
-                change_planning=changes,
+                path=path,
                 change_id=patch["id"],
                 change_description=patch["description"],
-                total=patch["total"]
+                total=len(changes["patches"])
             )
         )
 
-        current_content = implement_change(
+        patch_content = implement_change(
             change_context
         )
 
         save_file(
             path=path,
-            content=current_content
+            content=patch_content
         )
 
 
@@ -202,8 +200,8 @@ def implement_change(change_context):
 
     prompt = IMPLEMENT_CHANGE_PROMPT.format(
         patch_id=change_context.change_id,
-        change_planning=change_context.change_planning,
-        file_content=change_context.file_content
+        description=change_context.change_description,
+        path=change_context.path
     )
 
     response = call_llm(
