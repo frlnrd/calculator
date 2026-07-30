@@ -148,7 +148,7 @@ def apply_changes(
             path=path
         )
 
-        for change in patch["changes"]:
+        for change in changes["patches"]:
 
             change_context = (
                 ChangeContext(
