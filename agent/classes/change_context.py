@@ -14,4 +14,6 @@ class ChangeContext:
 
     change_description: str
 
+    content: str
+
     total: int

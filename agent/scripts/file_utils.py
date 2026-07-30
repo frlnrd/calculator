@@ -155,6 +155,7 @@ def apply_changes(
                 path=path,
                 change_id=patch["id"],
                 change_description=patch["description"],
+                content=patch["content"]
                 total=len(changes["patches"])
             )
         )
@@ -201,6 +202,7 @@ def implement_change(change_context):
     prompt = IMPLEMENT_CHANGE_PROMPT.format(
         patch_id=change_context.change_id,
         description=change_context.change_description,
+        content=change_context.content,
         path=change_context.path
     )
 

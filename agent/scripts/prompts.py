@@ -206,12 +206,21 @@ Format :
     {{
       "id": 1,
       "path": "style.css",
-      "description": "Ajouter .btn.key-active"
+      "description": "Ajouter .btn.key-active",
+      "content" : ""
     }},
     {{
       "id": 2,
       "path": "script.js",
-      "description": "Ajouter keyToButton"
+      "description": "Ajouter une variable booléenne isValid dans calculate()",
+      "content" : "function calculate() {{ ... }}"
+    }},
+    {{
+      "id": 3,
+      "total": 7,
+      "path": "OrderService.java",
+      "description": "Remplacer BigDecimal.equals par compareTo",
+      "content": "if (amount.equals(BigDecimal.ZERO)) {{ ... }}"
     }}
   ]
 }}
@@ -230,6 +239,10 @@ Règles :
 - Tu dois uniquement décrire les patches à produire.
 - La description doit être suffisamment précise pour permettre l'implémentation du patch sans ambiguïté.
 - Ne retourne que les fichiers réellement modifiés.
+- Si le patch ajoute un nouvel élément (fonction, classe, variable, règle CSS, listener, etc.), content doit être vide.
+- Si le patch modifie un élément existant, content doit contenir uniquement le plus petit bloc nécessaire à comprendre et réaliser la modification.
+- Ne jamais fournir un fichier complet dans content.
+- Ne jamais fournir plus de contexte que nécessaire.
 
 Si aucun changement n'est nécessaire :
 
@@ -244,6 +257,9 @@ Tu es un développeur senior.
 
 Tu dois implémenter le patch {patch_id}.
 
+Si un contenu est fourni, le patch doit y apporter des modifications.
+
+
 === FICHIER ===
 
 {path}
@@ -251,6 +267,10 @@ Tu dois implémenter le patch {patch_id}.
 === MODIFICATION ===
 
 {description}
+
+=== CONTENU ===
+
+{content}
 
 IMPORTANT
 
