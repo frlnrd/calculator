@@ -225,16 +225,6 @@ def implement_change(change_context):
         print(response)
 
         print(repr(response))
-        print(repr(change_context.end_marker))
-        if response.endswith(
-            change_context.end_marker
-        ):
-
-            content += response.removesuffix(
-                change_context.end_marker
-            )
-
-            break
 
         content += response
         print("=== CURRENT CONTENT LENGTH ===")
