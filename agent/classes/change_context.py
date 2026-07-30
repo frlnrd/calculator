@@ -8,14 +8,14 @@ class ChangeContext:
 
     file_content: str
 
-    change_description: str
-
     repo_name: str
 
     grok_api_key: str
 
-    end_marker: str = (
-        "<<<END_OF_RESPONSE>>>"
-    )
+    change_planning: str
+    
+    change_id: int
 
-    max_lines_per_response: int = 300
+    change_description: str
+
+    total: int

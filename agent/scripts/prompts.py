@@ -202,31 +202,41 @@ Réponds UNIQUEMENT avec un JSON valide.
 Format :
 
 {{
-  "files": [
+  "patches": [
     {{
+      "id": 1,
+      "total": 8,
       "path": "style.css",
-      "changes": [
-        "Description précise d'une modification atomique"
-      ]
+      "description": "Ajouter .btn.key-active"
+    }},
+    {{
+      "id": 2,
+      "total": 8,
+      "path": "script.js",
+      "description": "Ajouter keyToButton"
     }}
   ]
 }}
 
 Règles :
 
-- Chaque élément du tableau "changes" représente une modification atomique.
-- Une modification atomique réalise une seule intention de changement.
-- Une modification atomique doit pouvoir être implémentée indépendamment des autres.
-- Une modification atomique doit être suffisamment petite pour être traitée séparément.
+- Chaque patch représente UNE seule modification atomique.
+- Chaque patch doit être implémentable indépendamment.
+- Chaque patch doit être suffisamment petit pour tenir dans une réponse unique du modèle.
+- Les patches doivent être ordonnés dans l'ordre d'application.
+- Les patches peuvent cibler plusieurs fois le même fichier.
+- Un patch ne doit jamais dépendre d'un patch futur.
 - Ne génère jamais de code.
-- Ne génère jamais de patch.
+- Ne génère jamais de diff.
 - Ne génère jamais de contenu de fichier.
-- Tu dois uniquement décrire les modifications à appliquer.
+- Tu dois uniquement décrire les patches à produire.
+- La description doit être suffisamment précise pour permettre l'implémentation du patch sans ambiguïté.
 - Ne retourne que les fichiers réellement modifiés.
-- Si aucun changement n'est nécessaire, retourne :
+
+Si aucun changement n'est nécessaire :
 
 {{
-  "files": []
+  "patches": []
 }}
 """
 
@@ -234,24 +244,25 @@ Règles :
 IMPLEMENT_CHANGE_PROMPT = """
 Tu es un développeur senior.
 
-Tu dois implémenter UNE SEULE modification.
+Tu dois implémenter le patch {patch_id}
+parmi les patches décrits ci-dessous.
+
+=== CHANGE PLANNING ===
+
+{change_planning}
 
 === FICHIER ===
 
 {file_content}
 
-=== MODIFICATION ===
-
-{change_description}
-
 IMPORTANT
 
+- Implémente uniquement le patch {patch_id}.
+- Ignore tous les autres patches.
 - Ne modifie que ce qui est nécessaire.
+- Il ne doit y avoir qu'une seule modification logique dans ta réponse.
 - Conserve le reste du fichier à l'identique.
-- Renvoie exclusivement le contenu complet du fichier modifié.
-- Maximum 300 lignes par réponse.
-- Si le contenu dépasse cette limite, envoie autant de réponses que nécessaire pour transmettre tout le contenu du fichier.
-- Lorsque tout le contenu a été envoyé, envoie une dernière réponse contenant uniquement :
-
-<<<END_OF_RESPONSE>>>
+- Renvoie exclusivement un patch Git unifié valide.
+- Ne renvoie aucune explication.
+- Ne renvoie aucun texte avant ou après le patch.
 """

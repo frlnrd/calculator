@@ -154,9 +154,12 @@ def apply_changes(
                 ChangeContext(
                     path=path,
                     file_content=current_content,
-                    change_description=change,
                     repo_name=context.repo_name,
-                    grok_api_key=context.grok_api_key
+                    grok_api_key=context.grok_api_key,
+                    change_planning=file_change["changes"],
+                    change_id=change.id,
+                    change_description=change.description,
+                    total=change.total
                 )
             )
 
@@ -197,14 +200,18 @@ def save_file(path, content):
 
 def implement_change(change_context):
 
-    prompt = IMPLEMENT_CHANGE_PROMPT.format(
-        file_content=change_context.file_content,
-        change_description=change_context.change_description
-    )
-
     content = ""
 
-    while True:
+    for patch_id in range(
+        1,
+        change_context.total + 1
+    ):
+
+        prompt = IMPLEMENT_CHANGE_PROMPT.format(
+            patch_id=change_context.patch_id,
+            change_planning=change_context.change_planning,
+            file_content=change_context.file_content
+        )
 
         response = call_llm(
             prompt=prompt,
