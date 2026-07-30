@@ -148,24 +148,22 @@ def apply_changes(
             path=path
         )
 
-        for change in changes["patches"]:
-
-            change_context = (
-                ChangeContext(
-                    path=path,
-                    file_content=current_content,
-                    repo_name=context.repo_name,
-                    grok_api_key=context.grok_api_key,
-                    change_planning=changes,
-                    change_id=patch["id"],
-                    change_description=patch["description"],
-                    total=patch["total"]
-                )
+        change_context = (
+            ChangeContext(
+                path=path,
+                file_content=current_content,
+                repo_name=context.repo_name,
+                grok_api_key=context.grok_api_key,
+                change_planning=changes,
+                change_id=patch["id"],
+                change_description=patch["description"],
+                total=patch["total"]
             )
+        )
 
-            current_content = implement_change(
-                change_context
-            )
+        current_content = implement_change(
+            change_context
+        )
 
         save_file(
             path=path,
@@ -202,32 +200,27 @@ def implement_change(change_context):
 
     content = ""
 
-    for patch_id in range(
-        1,
-        change_context.total + 1
-    ):
+    prompt = IMPLEMENT_CHANGE_PROMPT.format(
+        patch_id=change_context.change_id,
+        change_planning=change_context.change_planning,
+        file_content=change_context.file_content
+    )
 
-        prompt = IMPLEMENT_CHANGE_PROMPT.format(
-            patch_id=change_context.change_id,
-            change_planning=change_context.change_planning,
-            file_content=change_context.file_content
-        )
+    response = call_llm(
+        prompt=prompt,
+        grok_api_key=change_context.grok_api_key,
+        repo_name=change_context.repo_name
+    )
 
-        response = call_llm(
-            prompt=prompt,
-            grok_api_key=change_context.grok_api_key,
-            repo_name=change_context.repo_name
-        )
+    response = response.strip()
 
-        response = response.strip()
+    print("=== IMPLEMENT CHANGE RESPONSE {change_context.change_id}/{change_context.total} ===")
+    print(response)
 
-        print("=== IMPLEMENT CHANGE RESPONSE ===")
-        print(response)
+    print(repr(response))
 
-        print(repr(response))
-
-        content += response
-        print("=== CURRENT CONTENT LENGTH ===")
-        print(len(content))
+    content += response
+    print("=== CURRENT CONTENT LENGTH ===")
+    print(len(content))
 
     return content
