@@ -1,5 +1,6 @@
 import os
 import json
+import time
 from scripts.constants import (
     EXCLUDED_DIRS,
     PROTECTED_PATHS,
@@ -206,6 +207,7 @@ def implement_change(change_context):
         path=change_context.path
     )
 
+    time.sleep(2.5)
     response = call_llm(
         prompt=prompt,
         grok_api_key=change_context.grok_api_key,
