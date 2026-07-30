@@ -214,7 +214,7 @@ def implement_change(change_context):
 
     response = response.strip()
 
-    print("=== IMPLEMENT CHANGE RESPONSE {change_context.change_id}/{change_context.total} ===")
+    print(f"=== IMPLEMENT CHANGE RESPONSE {change_context.change_id}/{change_context.total} ===")
     print(response)
 
     print(repr(response))
