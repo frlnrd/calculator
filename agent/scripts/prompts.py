@@ -250,7 +250,7 @@ Tu dois implémenter le patch {patch_id}.
 
 === MODIFICATION ===
 
-{change_description}
+{description}
 
 IMPORTANT
 
