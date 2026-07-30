@@ -257,9 +257,6 @@ Tu es un développeur senior.
 
 Tu dois implémenter le patch {patch_id}.
 
-Si un contenu est fourni, le patch doit y apporter des modifications.
-
-
 === FICHIER ===
 
 {path}
@@ -277,7 +274,11 @@ IMPORTANT
 - Ne modifie que ce qui est nécessaire.
 - Il ne doit y avoir qu'une seule modification logique dans ta réponse.
 - Conserve le reste du fichier à l'identique.
+- Si CONTENU est vide, alors le patch correspond à un ajout.
+- Si CONTENU n'est pas vide, alors le patch doit modifier exclusivement ce contenu.
+- Ne modifie aucun autre élément du fichier.
 - Renvoie exclusivement un patch Git unifié valide.
+- Le patch doit pouvoir être appliqué avec git apply.
 - Ne renvoie aucune explication.
 - Ne renvoie aucun texte avant ou après le patch.
 """

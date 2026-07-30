@@ -155,7 +155,7 @@ def apply_changes(
                 path=path,
                 change_id=patch["id"],
                 change_description=patch["description"],
-                content=patch["content"]
+                content=patch["content"],
                 total=len(changes["patches"])
             )
         )
