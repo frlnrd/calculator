@@ -278,11 +278,10 @@ IMPORTANT
 - Conserve le reste du fichier à l'identique.
 - CONTENU représente le contexte de référence du patch.
 - Le patch doit être généré à partir de CONTENU.
-- Si la modification correspond à un ajout, le nouvel élément doit être inséré immédiatement après CONTENU.
-- Si la modification correspond à une modification, CONTENU doit être remplacé par sa version modifiée.
 - N'ignore jamais CONTENU.
 - N'utilise jamais un autre emplacement du fichier.
 - Le patch doit contenir suffisamment de contexte pour être applicable par git apply.
+- Ne jamais produire un patch sans coordonnées de hunk.
 - Renvoie exclusivement un patch Git unifié valide.
 - Le patch doit pouvoir être appliqué avec git apply.
 - Ne renvoie aucune explication.
