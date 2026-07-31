@@ -206,7 +206,7 @@ Format :
     {{
       "id": 1,
       "path": "style.css",
-      "description": "Ajouter .btn.key-active",
+      "description": "Ajouter .btn.key-active après le bloc @media (max-width: 480px)",
       "content" : "@media (max-width: 480px) {{ ... }}"
     }},
     {{
