@@ -163,6 +163,7 @@ def apply_changes(
         )
 
         patch_content = implement_change(
+            path,
             change_context
         )
 
@@ -222,14 +223,20 @@ def apply_patch(patch_content):
         )
 
 
-def implement_change(change_context):
+def implement_change(path, change_context):
 
     content = ""
+
+    validate_path(path)
+
+    patch_content = load_file(
+        path=path
+    )
 
     prompt = IMPLEMENT_CHANGE_PROMPT.format(
         patch_id=change_context.change_id,
         description=change_context.change_description,
-        content=change_context.content,
+        content=patch_content,
         path=change_context.path
     )
 
