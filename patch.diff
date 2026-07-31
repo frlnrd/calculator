@@ -1,0 +1,51 @@
+```diff
+@@
+ document.addEventListener('keydown', (e) => {
+     if (e.key >= '0' && e.key <= '9') {
+         appendNumber(e.key);
+     } else if (e.key === '.') {
+         appendNumber('.');
+@@
+         clearDisplay();
+     }
+ });
++
++// Mapping from keyboard keys to calculator buttons
++const keyToButton = {};
++
++function getButtonByKey(key) {
++    // Try to retrieve cached button, otherwise query the DOM
++    if (keyToButton[key]) {
++        return keyToButton[key];
++    }
++    // Buttons are expected to have a data-key attribute matching the keyboard key
++    const btn = document.querySelector(`[data-key="${key}"]`);
++    if (btn) {
++        keyToButton[key] = btn;
++    }
++    return btn;
++}
++
++function addKeyActive(key) {
++    const btn = getButtonByKey(key);
++    if (btn) {
++        btn.classList.add('key-active');
++    }
++}
++
++function removeKeyActive(key) {
++    const btn = getButtonByKey(key);
++    if (btn) {
++        btn.classList.remove('key-active');
++    }
++}
++
++// Visual feedback for key presses
++document.addEventListener('keydown', (e) => {
++    addKeyActive(e.key);
++});
++
++document.addEventListener('keyup', (e) => {
++    removeKeyActive(e.key);
++});
+```
