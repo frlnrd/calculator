@@ -1,4 +1,5 @@
 import requests
+import time
 
 from scripts.config import GROK_API_KEY, REPO_NAME
 
@@ -8,6 +9,8 @@ def call_llm(prompt, grok_api_key, repo_name):
 
     print("=== PROMPT LENGTH ===")
     print(len(prompt))
+    # Wait between each call to LLM to prevent 'quota per minute' error
+    time.sleep(30)
 
     response = requests.post(
         "https://api.groq.com/openai/v1/chat/completions",
