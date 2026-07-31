@@ -1,5 +1,7 @@
 import os
 import json
+import subprocess
+
 from scripts.constants import (
     EXCLUDED_DIRS,
     PROTECTED_PATHS,
@@ -164,9 +166,8 @@ def apply_changes(
             change_context
         )
 
-        save_file(
-            path=path,
-            content=patch_content
+        apply_patch(
+            patch_content=patch_content
         )
 
 
@@ -183,17 +184,43 @@ def load_file(path):
         return file.read()
 
 
-def save_file(path, content):
+def apply_patch(patch_content):
 
-    validate_path(path)
+    try:
+        with open(
+            "patch.diff",
+            "w",
+            encoding="utf-8"
+        ) as file:
 
-    with open(
-        path,
-        "w",
-        encoding="utf-8"
-    ) as file:
+            file.write(patch_content)
 
-        file.write(content)
+        subprocess.run(
+            [
+                "git",
+                "apply",
+                "--check",
+                "patch.diff"
+            ],
+            check=True
+        )
+
+        subprocess.run(
+            [
+                "git",
+                "apply",
+                "patch.diff"
+            ],
+            check=True
+        )
+
+
+    except Exception as ex:
+
+        print(
+            f"Patch invalide {patch_content}: {ex}"
+        )
+
 
 def implement_change(change_context):
 
