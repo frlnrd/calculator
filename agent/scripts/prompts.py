@@ -207,7 +207,7 @@ Format :
       "id": 1,
       "path": "style.css",
       "description": "Ajouter .btn.key-active",
-      "content" : ""
+      "content" : "@media (max-width: 480px) {{ ... }}"
     }},
     {{
       "id": 2,
@@ -239,8 +239,7 @@ Règles :
 - Tu dois uniquement décrire les patches à produire.
 - La description doit être suffisamment précise pour permettre l'implémentation du patch sans ambiguïté.
 - Ne retourne que les fichiers réellement modifiés.
-- Si le patch ajoute un nouvel élément (fonction, classe, variable, règle CSS, listener, etc.), content doit être vide.
-- Si le patch modifie un élément existant, content doit contenir uniquement le plus petit bloc nécessaire à comprendre et réaliser la modification.
+- Content doit contenir uniquement le plus petit bloc nécessaire à comprendre et réaliser la modification.
 - Ne jamais fournir un fichier complet dans content.
 - Ne jamais fournir plus de contexte que nécessaire.
 
