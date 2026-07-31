@@ -1,0 +1,16 @@
+--- a/script.js
++++ b/script.js
+@@
+-});
++});
++
++// Add keydown and keyup listeners to toggle .key-active class on matching buttons
++document.addEventListener('keydown', function(e) {
++  const btn = document.querySelector(`button[data-key="${e.key}"]`);
++  if (btn) btn.classList.add('key-active');
++});
++
++document.addEventListener('keyup', function(e) {
++  const btn = document.querySelector(`button[data-key="${e.key}"]`);
++  if (btn) btn.classList.remove('key-active');
++});
