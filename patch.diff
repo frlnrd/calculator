@@ -1,0 +1,9 @@
+```diff
+--- a/script.js
++++ b/script.js
+@@
++document.addEventListener('keyup', (e) => {
++    const btn = getButtonByKey(e.key);
++    removeKeyActive(btn);
++});
+```
