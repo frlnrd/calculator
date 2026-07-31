@@ -1,0 +1,12 @@
+--- a/script.js
++++ b/script.js
+@@
+ document.addEventListener('keydown', (e) => {
+     // (code existant de gestion clavier)
+ });
++document.addEventListener('keyup', (e) => {
++    const button = document.querySelector(`button[data-key="${e.key}"]`);
++    if (button) {
++        button.classList.remove('key-active');
++    }
++});
