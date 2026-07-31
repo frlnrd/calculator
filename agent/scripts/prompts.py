@@ -240,6 +240,9 @@ Règles :
 - La description doit être suffisamment précise pour permettre l'implémentation du patch sans ambiguïté.
 - Ne retourne que les fichiers réellement modifiés.
 - Content doit contenir uniquement le plus petit bloc nécessaire à comprendre et réaliser la modification.
+- Content doit être extrait du code existant.
+- Ne jamais inventer ou générer de contenu dans content.
+- Si la modification concerne une insertion d'un bloc complet, content doit représenter le bloc précédent le point d'insertion.
 - Ne jamais fournir un fichier complet dans content.
 - Ne jamais fournir plus de contexte que nécessaire.
 
@@ -273,9 +276,13 @@ IMPORTANT
 - Ne modifie que ce qui est nécessaire.
 - Il ne doit y avoir qu'une seule modification logique dans ta réponse.
 - Conserve le reste du fichier à l'identique.
-- Si CONTENU est vide, alors le patch correspond à un ajout.
-- Si CONTENU n'est pas vide, alors le patch doit modifier exclusivement ce contenu.
-- Ne modifie aucun autre élément du fichier.
+- CONTENU représente le contexte de référence du patch.
+- Le patch doit être généré à partir de CONTENU.
+- Si la modification correspond à un ajout, le nouvel élément doit être inséré immédiatement après CONTENU.
+- Si la modification correspond à une modification, CONTENU doit être remplacé par sa version modifiée.
+- N'ignore jamais CONTENU.
+- N'utilise jamais un autre emplacement du fichier.
+- Le patch doit contenir suffisamment de contexte pour être applicable par git apply.
 - Renvoie exclusivement un patch Git unifié valide.
 - Le patch doit pouvoir être appliqué avec git apply.
 - Ne renvoie aucune explication.
