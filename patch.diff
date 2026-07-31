@@ -1,0 +1,11 @@
+--- a/script.js
++++ b/script.js
+@@
+ 
++// Patch 7: Remove visual active state on keyup
++document.addEventListener('keyup', (event) => {
++  const button = getButtonByKey(event.key);
++  if (button) {
++    removeKeyActive(button);
++  }
++});
