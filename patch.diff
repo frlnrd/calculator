@@ -1,0 +1,21 @@
+```diff
+@@
+ document.addEventListener('keydown', (e) => {
+     if (e.key >= '0' && e.key <= '9') {
+         appendNumber(e.key);
+     } else if (e.key === '.') {
+         appendNumber('.');
+@@
+     } else if (e.key === 'Escape') {
+         clearDisplay();
+     }
+ });
++
++// Remove visual active class from buttons on key release
++document.addEventListener('keyup', (e) => {
++    const btn = document.querySelector(`button[data-key="${e.key}"]`);
++    if (btn) {
++        btn.classList.remove('active');
++    }
++});
+```
